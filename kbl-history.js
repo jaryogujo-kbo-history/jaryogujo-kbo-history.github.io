@@ -17,6 +17,7 @@ d3.kblHistoryDataMng = function () {
             d[k] = +d[k]
           } else if (k === 'coach_name') {
             d[k] = d[k].split(',').map(function(d) {return d.trim()})
+            d['first_coach_name'] = d[k][0]
           }
         }
 
@@ -36,23 +37,80 @@ d3.kblHistoryDataMng = function () {
 }
 
 d3.kblHistory = function module () {
-  var attr = {
-    width : undefined
+  var attrs = {
+    width : 800,
+    height : 600,
+    isTeamMode : true
   };//end of attributes
+
+  var x= d3.scale.ordinal().rangeRoundBands([0, attrs.width])
+  var y= d3.scale.ordinal().rangeRoundBands([0, attrs.height])
 
   var exports = function (_selection) {
     _selection.each(function(_data) {
+      var yearExtent = d3.extent(_data, function(d) {return d.year})
+
+      var nestedByTeam = nestFunc('final_team_code', 'first_coach_name')
+      .entries(_data);
+      var nestedByCoach = nestFunc('first_coach_name', 'final_team_code')
+      .entries(_data);
+
+      x.domain(d3.range(yearExtent[0], yearExtent[1]))
+      y.domain(nestedByTeam.map(function(d) {return d.key}))
 
     }); //end of each
   } // end of exports
 
-  function attrFunc(_) {
-    if(!arguments.length) {
-        return
+  function nestFunc(key1, key2 ) {
+    return d3.nest()
+      .key(function(d) {return d[key1]})
+      .key(function(d) {return d[key2]})
+      .sortValues(function(a,b) { return a.year-b.year})
+      .rollup(rollupFunc)
+  }
+
+  function rollupFunc(leaves) {
+    var newLeaves = [],
+      tempLeaves = [],
+      preYear = -1;
+
+    leaves.forEach(function(l) {
+      if (tempLeaves.length === 0 || (preYear+1) === l.year) {
+        tempLeaves.push(l)
+      } else {
+        newLeaves.push(tempLeaves)
+        tempLeaves = [];
+        tempLeaves.push(l);
+      }
+      preYear = l.year;
+    })
+
+    if (tempLeaves.length >0) {
+      newLeaves.push(tempLeaves);
     }
+    return newLeaves;
+  }
+
+  function svgInit(svg) {
 
   }
 
+  function createAccessorFunc(_attr) {
+    function accessor(val) {
+      if (!arguments.length) {
+        return attrs[_attr]
+      }
+      attrs[_attr] = val;
+      return exports;
+    }
+    return accessor;
+  }
+
+  for (var attr in attrs) {
+    if((!exports[attr]) && attrs.hasOwnProperty(attr)) {
+      exports[attr] = createAccessorFunc(attr);
+    }
+  }
 
   return exports;
 }

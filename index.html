@@ -17,10 +17,15 @@
   <script src="kbl-history.js"></script>
   <script>
     var kblHistoryDm = d3.kblHistoryDataMng()
-    dm.loadCsv('kbl-team-history.csv')
-    dm.on('dataReady', function(d) {
-      console.log(d);
+    kblHistoryDm.loadCsv('kbl-team-history.csv')
+    kblHistoryDm.on('dataReady', function(d) {
+      var chart = d3.kblHistory();
+      d3.select('div.jg-chart')
+        .datum(d)
+        .call(chart);
     })
+
+
   </script>
 </body>
 </html>
