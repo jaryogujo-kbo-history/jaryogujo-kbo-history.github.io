@@ -1,0 +1,22 @@
+{
+  "name": "kbl-history",
+  "version": "0.0.1",
+  "homepage": "https://github.com/wonderino/jaryogujo",
+  "authors": [
+    "Inho Won <wonderino@gmail.com>"
+  ],
+  "description": "visualize kbl-history",
+  "main": "kbl-history.js",
+  "keywords": [
+    "kbl",
+    "visualization"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
