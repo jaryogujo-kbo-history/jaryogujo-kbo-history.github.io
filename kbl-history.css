@@ -7,9 +7,18 @@ div.jg-content {
   border-spacing : 0px;
   font-weight : 300;
   color: rgb(51, 51, 51);
-
+  font-size : 12px;
 }
 
 div.jg-chart {
   margin: 0 auto;
+}
+
+.axis path {
+  display: none;
+}
+
+.axis line {
+  shape-rendering: crispEdges;
+  stroke: #000;
 }

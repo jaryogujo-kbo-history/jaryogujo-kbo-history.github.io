@@ -39,18 +39,17 @@ d3.kblHistoryDataMng = function () {
 d3.kblHistory = function module () {
   var attrs = {
     canvasWidth : 800,
-    canvasHeight : 600,
+    canvasHeight : 400,
     isTeamMode : true,
     blockColExtent : [],
   };//end of attributes
-  var margin = {top:10, right : 10, bottom : 10, left : 30}
-  var x = d3.scale.ordinal(), y=d3.scale.ordinal();
-
+  var margin = {top:20, right : 20, bottom : 10, left : 40}
+  var x = d3.scale.linear(), y=d3.scale.ordinal(), xAxis = d3.svg.axis();
+  var teamMap = d3.map({'OB':'OB','SS':'삼성','MB':'MBC',
+  'HT':'해태','LT':'롯데','SM':'삼미','LG':'LG','DS':'두산','KA':'KIA',
+  'BG':'빙그레','HH':'한화','SK':'SK','NS':'넥센','NC':'NC','SB':'쌍방울',
+  'CB':'청보','TP':'태평양','HD':'현대'})
   var svg, curData;
-  /*
-  width : 800px;
-  height : 600px;
-  */
   var exports = function (_selection) {
     _selection.each(function(_data) {
       d3.select(this).style('width', attrs.canvasWidth+'px').style('height', attrs.canvasHeight+'px')
@@ -64,8 +63,14 @@ d3.kblHistory = function module () {
       .entries(_data);
 
       curData = nestedByTeam;
-      x.rangeRoundBands([0, width]).domain(d3.range(yearExtent[0], yearExtent[1]+1))
+      x.rangeRound([0, width]).domain([yearExtent[0], yearExtent[1]+1])
       y.rangeRoundBands([0, height]).domain(curData.map(function(d) {return d.key}))
+
+      xAxis.tickSize(4)
+      .ticks(20)
+      .tickFormat(d3.format('d'))
+      .orient("top")
+      .scale(x)
 
       if (!svg) {
         svg = _selection.selectAll('svg.jg-svg')
@@ -74,15 +79,37 @@ d3.kblHistory = function module () {
         .attr('class','jg-svg')
         .attr('width', width + margin.left + margin.right)
         .attr('height', height + margin.top + margin.bottom)
-        .append('g')
-        .attr('transform', d3.svg.transform().translate(function() {return [margin.left, margin.top]}))
       }
+
       svg.call(svgInit)
     }); //end of each
   } // end of exports
 
   function svgInit(svg) {
-    var row = svg.selectAll('g.jg-row')
+
+    var labelCol = svg.append('g')
+    .attr('transfrom', d3.svg.transform().translate([0, margin.top]))
+
+    labelCol.selectAll('text.jg-team-label')
+      .data(function(d) {return d.map(function(dd) { return dd.key})})
+    .enter().append('text')
+    .attr('class','jg-team-label')
+    .attr('text-anchor', 'end')
+    .attr('x', margin.left*.75)
+    .attr('y', function(d){return y(d) + y.rangeBand()*.5 + margin.top })
+    .attr('dy', '.35em')
+    .text(function(d) {return teamMap.get(d)})
+
+    //TODO: draw yearAxis
+    svg.append("g")
+    .attr("class", "x axis")
+    .attr("transform", d3.svg.transform().translate([margin.left, margin.top]))
+    .call(xAxis);
+
+    var table = svg.append('g')
+    .attr('transform', d3.svg.transform().translate(function() {return [margin.left, margin.top]}))
+
+    var row = table.selectAll('g.jg-row')
       .data(function(d) {return d}) // => team level
     .enter().append('g')
     .attr('class', 'jg-row')
@@ -99,18 +126,17 @@ d3.kblHistory = function module () {
     .attr('transform', d3.svg.transform().translate(function(d) {return [x(d[0].year), 0]}))
 
     col.append('rect')
-    .attr('class', 'jg-jg-col-block')
+    .attr('class', 'jg-col-block')
     .attr('x', 0)
     .attr('y', 0)
     .attr('width', function(d) {
-      return d.length * x.rangeBand()
+      return x(d[d.length-1].year+1) - x(d[0].year);
     })
     .attr('height', y.rangeBand())
     .style('fill', 'none')
     .style('stroke', '#111')
 
-    //draw year-block
-
+    //TODO: draw year-block
 
   }
 
