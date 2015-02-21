@@ -3,10 +3,13 @@ body {
 }
 
 div.jg-content {
-  margin: 0 auto;
-  width : 1000px;
+  margin: 20px auto;
   border-spacing : 0px;
   font-weight : 300;
   color: rgb(51, 51, 51);
-  background-color : #ddd;
+
+}
+
+div.jg-chart {
+  margin: 0 auto;
 }

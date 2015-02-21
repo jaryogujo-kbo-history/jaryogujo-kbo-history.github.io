@@ -38,18 +38,25 @@ d3.kblHistoryDataMng = function () {
 
 d3.kblHistory = function module () {
   var attrs = {
-    width : 800,
-    height : 600,
+    canvasWidth : 800,
+    canvasHeight : 600,
     isTeamMode : true
   };//end of attributes
-
+  var margin = {top:10, right : 20, bottom : 10, left : 20}
   var x= d3.scale.ordinal().rangeRoundBands([0, attrs.width])
   var y= d3.scale.ordinal().rangeRoundBands([0, attrs.height])
-
+  var svg;
+  /*
+  width : 800px;
+  height : 600px;
+  */
   var exports = function (_selection) {
     _selection.each(function(_data) {
-      var yearExtent = d3.extent(_data, function(d) {return d.year})
+      d3.select(this).style('width', attrs.canvasWidth+'px').style('height', attrs.canvasHeight+'px')
 
+      var width = attrs.canvasWidth - margin.left - margin.right;
+      var height =  attrs.canvasHeight - margin.top - margin.bottom;
+      var yearExtent = d3.extent(_data, function(d) {return d.year})
       var nestedByTeam = nestFunc('final_team_code', 'first_coach_name')
       .entries(_data);
       var nestedByCoach = nestFunc('first_coach_name', 'final_team_code')
@@ -58,8 +65,23 @@ d3.kblHistory = function module () {
       x.domain(d3.range(yearExtent[0], yearExtent[1]))
       y.domain(nestedByTeam.map(function(d) {return d.key}))
 
+      if (!svg) {
+        svg = _selection.selectAll('svg.jg-svg')
+          .data([_data])
+        .enter().append('svg')
+        .attr('class','jg-svg')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom)
+        .append('g')
+        .attr('transform', d3.svg.transform().translate(function() {return [margin.left, margin.top]}))
+      }
+
     }); //end of each
   } // end of exports
+
+  function svgInit(svg) {
+
+  }
 
   function nestFunc(key1, key2 ) {
     return d3.nest()
@@ -91,9 +113,7 @@ d3.kblHistory = function module () {
     return newLeaves;
   }
 
-  function svgInit(svg) {
 
-  }
 
   function createAccessorFunc(_attr) {
     function accessor(val) {

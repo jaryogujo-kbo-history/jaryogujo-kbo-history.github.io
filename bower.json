@@ -21,6 +21,7 @@
   ],
   "dependencies": {
     "d3": "~3.5.5",
-    "normalize.css": "~3.0.2"
+    "normalize.css": "~3.0.2",
+    "d3-transform": "*"
   }
 }
