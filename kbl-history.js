@@ -40,12 +40,13 @@ d3.kblHistory = function module () {
   var attrs = {
     canvasWidth : 800,
     canvasHeight : 600,
-    isTeamMode : true
+    isTeamMode : true,
+    blockColExtent : [],
   };//end of attributes
-  var margin = {top:10, right : 20, bottom : 10, left : 20}
-  var x= d3.scale.ordinal().rangeRoundBands([0, attrs.width])
-  var y= d3.scale.ordinal().rangeRoundBands([0, attrs.height])
-  var svg;
+  var margin = {top:10, right : 10, bottom : 10, left : 30}
+  var x = d3.scale.ordinal(), y=d3.scale.ordinal();
+
+  var svg, curData;
   /*
   width : 800px;
   height : 600px;
@@ -62,12 +63,13 @@ d3.kblHistory = function module () {
       var nestedByCoach = nestFunc('first_coach_name', 'final_team_code')
       .entries(_data);
 
-      x.domain(d3.range(yearExtent[0], yearExtent[1]))
-      y.domain(nestedByTeam.map(function(d) {return d.key}))
+      curData = nestedByTeam;
+      x.rangeRoundBands([0, width]).domain(d3.range(yearExtent[0], yearExtent[1]+1))
+      y.rangeRoundBands([0, height]).domain(curData.map(function(d) {return d.key}))
 
       if (!svg) {
         svg = _selection.selectAll('svg.jg-svg')
-          .data([_data])
+          .data([curData])
         .enter().append('svg')
         .attr('class','jg-svg')
         .attr('width', width + margin.left + margin.right)
@@ -75,11 +77,40 @@ d3.kblHistory = function module () {
         .append('g')
         .attr('transform', d3.svg.transform().translate(function() {return [margin.left, margin.top]}))
       }
-
+      svg.call(svgInit)
     }); //end of each
   } // end of exports
 
   function svgInit(svg) {
+    var row = svg.selectAll('g.jg-row')
+      .data(function(d) {return d}) // => team level
+    .enter().append('g')
+    .attr('class', 'jg-row')
+    .attr('transform', d3.svg.transform().translate(function(d) {return [0, y(d.key)]}))
+
+    var col = row.selectAll('g.jg-col')
+      .data(function(d) {
+        return d.values.reduce(
+          function(pre, cur){
+            return pre.concat(cur.values)}, [])
+      }) //d.values => coach level
+    .enter().append('g')
+    .attr('class', 'jg-col')
+    .attr('transform', d3.svg.transform().translate(function(d) {return [x(d[0].year), 0]}))
+
+    col.append('rect')
+    .attr('class', 'jg-jg-col-block')
+    .attr('x', 0)
+    .attr('y', 0)
+    .attr('width', function(d) {
+      return d.length * x.rangeBand()
+    })
+    .attr('height', y.rangeBand())
+    .style('fill', 'none')
+    .style('stroke', '#111')
+
+    //draw year-block
+
 
   }
 
