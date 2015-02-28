@@ -7,13 +7,16 @@ div.jg-content {
   border-spacing : 0px;
   font-weight : 300;
   color: rgb(51, 51, 51);
-  font-size : 12px;
+  font-size : 11px;
 }
 
 div.jg-chart {
   margin: 0 auto;
 }
 
+.jg-team-label, .axis text {
+  fill : #777;
+}
 .axis path {
   display: none;
 }
@@ -21,4 +24,20 @@ div.jg-chart {
 .axis line {
   shape-rendering: crispEdges;
   stroke: #000;
+}
+
+text.jg-rank-text {
+  fill : #111;
+}
+
+g.jg-col:nth-child(even) {
+  fill : #ddd;
+}
+
+g.jg-col:nth-child(odd) {
+  fill : #e8e8e8;
+}
+
+g.jg-col.filtered {
+  fill : #0d905b;
 }
