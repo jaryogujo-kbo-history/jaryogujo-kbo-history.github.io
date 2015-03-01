@@ -110,34 +110,45 @@ d3.kblHistory = function module () {
     .call(xAxis);
 
     var table = svg.append('g')
+    .attr('class', 'jg-table-view')
     .attr('transform', d3.svg.transform().translate(function() {return [margin.left, margin.top]}))
 
     var row = table.selectAll('g.jg-row')
       .data(function(d) {return d}) // => team level
     .enter().append('g')
     .attr('class', 'jg-row')
-    .attr('transform', d3.svg.transform().translate(function(d) {return [0, y(d.key)]}))
+    .attr('transform', d3.svg.transform().translate(function(d) {
+      d.y = y(d.key);
+      return [0, d.y]
+    }))
 
     var col = row.selectAll('g.jg-col')
       .data(function(d) {
         return d.values.reduce(
           function(pre, cur){
             return pre.concat(cur.values)}, [])
-      }) //d.values => coach level
+      }).sort(function(a,b) {return a[0].year - b[0].year}) //d.values => coach level
     .enter().append('g')
+    .sort(function(a,b) {
+      return a[0].year - b[0].year
+    })
     .attr('class', 'jg-col')
-    .attr('transform', d3.svg.transform().translate(function(d) {return [x(d[0].year), 0]}))
-    .on('click', selectCols)
+    .attr('transform', d3.svg.transform().translate(function(d) {
+      d.x = x(d[0].year);
+      return [d.x, 0]
+    }))
+    .on('mouseover', mouseOverColFunc)
+    .on('click', clickColFunc)
 
     col.append('rect')
     .attr('class', 'jg-col-block')
     .attr('x', 0)
     .attr('y', 0)
     .attr('width', function(d) {
-      return d.length * x.rangeBand()//x(d[d.length-1].year+1) - x(d[0].year);
+      d.width = d.length * x.rangeBand();
+      return d.width//x(d[d.length-1].year+1) - x(d[0].year);
     })
     .attr('height', y.rangeBand())
-    //.style('stroke', '#eee')
 
     //FIXME : write the rank of teams temporarily
     var rank = col.selectAll('text.jg-rank-text')
@@ -152,20 +163,91 @@ d3.kblHistory = function module () {
 
     //TODO : draw year-blocks 1.draw winning rates 2.draw score avg.
 
-    //TODO :
+
 
   }
 
-  function selectCols(d,i) {
-    if (d3.select(this).classed('filtered')) {
-      svg.selectAll('.jg-col').classed({'filtered':false})
+  function mouseOverColFunc(d,i) {
+    var thisCoach =d[0].first_coach_name
+    svg.selectAll('.jg-col').classed({'jg-mouseover':false})
+    var linkData = [];
+    svg.selectAll('.jg-col').filter(function(d) {return d[0].first_coach_name === thisCoach})
+      .classed({'jg-mouseover':true})
+      .each(function(d, i) {
+        var thisCol = d3.select(this)
+        var point = {}
+        point.x = thisCol.datum().x;
+        point.y = d3.select(thisCol.node().parentNode).datum().y;
+        point.width = thisCol.datum().width;
+        linkData.push(point);
+      }) //end of each
+
+    drawDiagonals(linkData);
+  }
+
+  function clickColFunc(d,i) {
+    svg.selectAll('.jg-col').classed({'jg-mouseover':false})
+    if (d3.select(this).classed('jg-clicked')) {
+      svg.selectAll('.jg-col').classed({'jg-clicked':false})
     } else {
       var thisCoach =d[0].first_coach_name
-      svg.selectAll('.jg-col').classed({'filtered':false})
+      svg.selectAll('.jg-col').classed({'jg-clicked':false})
       svg.selectAll('.jg-col').filter(function(d) {return d[0].first_coach_name === thisCoach})
-        .classed({'filtered':true})
+        .classed({'jg-clicked':true})
     }
-  }
+  }/// end of clickColFunc;
+
+  function drawDiagonals(linkData) {
+    linkData.sort(function(a,b) { return a.x - b.x;})
+    linkData = linkData.reduce(function(pre,cur,i,arr) {
+      if (i < arr.length-1) {
+        var link = {};
+        link.source = {}
+        link.source.x = cur.x+ cur.width;
+        link.source.y = cur.y+ y.rangeBand()*.5;
+        pre.push(link);
+      }
+
+      if (i>0) {
+        var lastLink = pre[i-1];
+        lastLink.target = {}
+        lastLink.target.x = cur.x;
+        lastLink.target.y = cur.y+y.rangeBand()*.5;
+      }
+
+      return pre;
+    }, []);
+
+    var diagonal = d3.svg.diagonal()
+    .source(function(d) { return {"x":d.source.y, "y":d.source.x}; })
+    .target(function(d) { return {"x":d.target.y, "y":d.target.x}; })
+    .projection(function(d) { return [d.y, d.x]; });
+    d3.selectAll('.jg-link').remove();
+    var linkPath = svg.select('.jg-table-view')
+      .selectAll('.jg-link')
+        .data(linkData, function(d){return [d.source.x, d.source.y, d.target.x, d.target.y].join('-')})
+
+    linkPath.enter().append('path')
+      .attr("class", "jg-link")
+      .attr("d", diagonal);
+
+    linkPath.exit().remove();
+
+    var linkPoint = svg.select('.jg-table-view')
+      .selectAll('circle.jg-link')
+        .data(linkData.reduce(function(pre, cur){
+          pre.push({x:cur.source.x, y:cur.source.y})
+          pre.push({x:cur.target.x, y:cur.target.y})
+          return pre;
+        }, []))
+
+    linkPoint.enter().append('circle')
+      .attr("class", "jg-link")
+      .attr('cx', function(d){return d.x})
+      .attr('cy', function(d){return d.y})
+      .attr('r', 4);
+    linkPoint.exit().remove();
+  }// end of drawDiagonals
 
   function nestFunc(key1, key2 ) {
     return d3.nest()
