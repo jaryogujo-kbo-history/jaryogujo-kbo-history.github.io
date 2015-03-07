@@ -1,40 +1,3 @@
-d3.kblHistoryDataMng = function () {
-  var exports = {},
-    dispatch = d3.dispatch('dataReady', 'dataLoading'),
-    data;
-
-  exports.loadCsv = function(_path) {
-    var loadCsv = d3.csv(_path);
-    loadCsv.on('progress', function() {
-      dispatch.dataLoading(d3.event.loaded);
-    });
-
-    loadCsv.get(function(_err, _res) {
-      _res.forEach(function(d) {
-        //clean data!!
-        for (var k in d) {
-          if(d.hasOwnProperty(k) && !isNaN(d[k])) {
-            d[k] = +d[k]
-          } else if (k === 'coach_name') {
-            d[k] = d[k].split(',').map(function(d) {return d.trim()})
-            d['first_coach_name'] = d[k][0]
-          }
-        }
-      })
-      data = _res;
-      dispatch.dataReady(_res);
-    })
-
-  }
-
-  exports.data = function () {
-    return data;
-  };
-
-  d3.rebind(exports, dispatch, 'on');
-  return exports;
-}
-
 d3.kblHistory = function module () {
   var attrs = {
     canvasWidth : 800,
@@ -113,6 +76,13 @@ d3.kblHistory = function module () {
     .attr('class', 'jg-table-view')
     .attr('transform', d3.svg.transform().translate(function() {return [margin.left, margin.top]}))
 
+    table.call(drawRows)
+
+    //TODO : draw year-blocks 1.draw winning rates 2.draw score avg.
+
+  }
+
+  function drawRows(table) {
     var row = table.selectAll('g.jg-row')
       .data(function(d) {return d}) // => team level
     .enter().append('g')
@@ -122,12 +92,13 @@ d3.kblHistory = function module () {
       return [0, d.y]
     }))
 
+    row.call(drawCols);
+  }
+
+  function drawCols(row) {
     var col = row.selectAll('g.jg-col')
-      .data(function(d) {
-        return d.values.reduce(
-          function(pre, cur){
-            return pre.concat(cur.values)}, [])
-      }).sort(function(a,b) {return a[0].year - b[0].year}) //d.values => coach level
+      .data(function(d) {return d.values.reduce(function(pre, cur){ return pre.concat(cur.values)}, [])})
+    .sort(function(a,b) {return a[0].year - b[0].year}) //d.values => coach level
     .enter().append('g')
     .sort(function(a,b) {
       return a[0].year - b[0].year
@@ -150,6 +121,10 @@ d3.kblHistory = function module () {
     })
     .attr('height', y.rangeBand())
 
+    col.call(drawRank);
+  }
+
+  function drawRank(col) {
     //FIXME : write the rank of teams temporarily
     var rank = col.selectAll('text.jg-rank-text')
         .data(function(d){return d;})
@@ -161,10 +136,7 @@ d3.kblHistory = function module () {
       .attr('text-anchor', 'middle')
       .text(function(d) {return d.rank})
 
-    //TODO : draw year-blocks 1.draw winning rates 2.draw score avg.
-
-
-
+    return rank;
   }
 
   function mouseOverColFunc(d,i) {
