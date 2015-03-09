@@ -14,9 +14,14 @@ div.jg-chart {
   margin: 0 auto;
 }
 
-.jg-team-label, .axis text {
+.jg-label, .axis text {
   fill : #777;
 }
+
+.jg-label {
+  cursor : pointer;
+}
+
 .axis path {
   display: none;
 }
@@ -33,6 +38,7 @@ text.jg-rank-text {
 g.jg-col {
   cursor : pointer;
 }
+
 g.jg-col:nth-child(even) rect{
   fill : #ddd;
 }
@@ -51,12 +57,11 @@ g.jg-col.jg-clicked rect {
 
 path.jg-link {
   fill : none;
-  stroke : #ca787d;
-  stroke-width : 2px;
+  /*stroke : #ca787d;*/
+  stroke-width : 1px;
 }
 
 circle.jg-link {
-
-  fill : #ca787d;
-
+  /*fill : #ca787d;*/
+  stroke : none;
 }
