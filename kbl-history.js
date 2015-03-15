@@ -1,4 +1,5 @@
 d3.kblHistory = function module () {
+  //TODO: draw figures to represent groups
   var attrs = {
     canvasWidth : 800,
     canvasHeight : 350,
@@ -8,7 +9,14 @@ d3.kblHistory = function module () {
   };//end of attributes
   var modes =  ['team', 'coach'];
   var margin = {top:20, right : 10, bottom : 10, left : 50}
-  var x = d3.scale.ordinal(), y=d3.scale.ordinal(), xAxis = d3.svg.axis();
+  var x = d3.scale.ordinal(), y=d3.scale.ordinal() ;
+  var xAxis = d3.svg.axis()
+    .tickSize(0)
+    .tickFormat(function(d) {
+        return d3.format('02d')(d%100) + "'"
+        //d3.format('d'))
+      })
+    .orient("top")
   var wa = d3.scale.linear();
   var teamMap = d3.map({'OB':'OB','SS':'삼성','MB':'MBC',
     'HT':'해태','LT':'롯데','SM':'삼미','LG':'LG','DS':'두산','KA':'KIA',
@@ -24,25 +32,15 @@ d3.kblHistory = function module () {
       var height =  attrs.tableHeight - margin.top - margin.bottom;
       var yearExtent = d3.extent(_data, function(d) {return d.year})
       var waExtent = d3.extent(_data, function(d) {return d.wa})
-      nestedByTeam = nestFunc('final_team_code', 'first_coach_name')
-      .entries(_data);
-      nestedByCoach = nestFunc('first_coach_name', 'final_team_code')
-      .entries(_data);
 
+      calRanks(_data);
+      calNestedData(_data);
       curData = (curMode===modes[0] ? nestedByTeam : nestedByCoach);
-
       x.rangeRoundBands([0, width])
         .domain(d3.range(yearExtent[0], yearExtent[1]+1))
-      y.rangeRoundBands([0, height]).domain(curData.map(function(d) {return d.key}))
-
-      //FIXME : get the scale of  winning rates
-      xAxis.tickSize(0)
-      .tickFormat(function(d) {
-        return d3.format('02d')(d%100) + "'"
-        //d3.format('d'))
-      })
-      .orient("top")
-      .scale(x)
+      y.rangeRoundBands([0, height])
+        .domain(curData.map(function(d) {return d.key}))
+      xAxis.scale(x)
 
       if (!svg) {
         svg = _selection.selectAll('svg.jg-svg')
@@ -154,10 +152,12 @@ d3.kblHistory = function module () {
     col.call(drawRank);
   }
 
-
-
   function drawRank(col) {
     //FIXME : write the rank of teams temporarily
+    //col.selectAll('text.jg-rank-timer')
+    var theta = d3.scale.ordinal()
+      .domain(d3.range(1,10))
+      .range()
     var rank = col.selectAll('text.jg-rank-text')
         .data(function(d){return d;})
       .enter().append('text')
@@ -166,7 +166,40 @@ d3.kblHistory = function module () {
       .attr('y', function(d,i) {return y.rangeBand()*.5})
       .attr('dy', '.35em')
       .attr('text-anchor', 'middle')
-      .text(function(d) {return d.rank})
+      .text(function(d) {return d.rall_rank})
+
+  }
+
+  function calNestedData(_data) {
+    nestedByTeam = nestFunc('final_team_code', 'first_coach_name')
+      .entries(_data);
+    nestedByCoach = nestFunc('first_coach_name', 'final_team_code')
+      .entries(_data);
+  }
+
+  function calRanks(_data) {
+    var nestedR = d3.nest() // r_rank
+      .key(function(d){return d.year})
+      .sortValues(function(a,b) {return b.r - a.r})
+      //.rollup(function(leaves){return leaves.map(function(d,i) {d.r_rank = i+1; return d;})})
+      .entries(_data);
+    nestedR.forEach(function(y) {
+      y.values.forEach(function(d,i) {
+        d.r_rank = i+1;
+      })
+    })
+
+    var nestedRall = d3.nest() // r_rank
+      .key(function(d){return d.year})
+      .sortValues(function(a,b) {return a.rall - b.rall})
+      //.rollup(function(leaves){return leaves.map(function(d,i) {d.rall_rank = i+1; return d;})})
+      .entries(_data);
+
+    nestedRall.forEach(function(y) {
+      y.values.forEach(function(d,i) {
+        d.rall_rank = i+1;
+      })
+    })
   }
 
   function getLinkData(selectedCol, targetName, linkData) {
