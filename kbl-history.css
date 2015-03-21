@@ -65,3 +65,20 @@ circle.jg-link {
   /*fill : #ca787d;*/
   stroke : none;
 }
+
+.jg-rank-hand {
+  stroke-width:1px;
+  /*opacity : .33;*/
+}
+
+.jg-rank-wa {
+  stroke: #ff2700; /* '#ff2700', '#f6b900', '#1698d8' */
+}
+
+.jg-rank-r {
+  stroke: #f6b900; /* '#ff2700', '#f6b900', '#1698d8' */
+}
+
+.jg-rank-rall {
+  stroke: #1698d8; /* '#ff2700', '#f6b900', '#1698d8' */
+}

@@ -138,7 +138,7 @@ d3.kblHistory = function module () {
       col.on('mouseover', mouseOverColFunc)
         .on('click', clickColFunc)
     }
-
+    
     col.append('rect')
     .attr('class', 'jg-col-block')
     .attr('x', 0)
@@ -154,10 +154,36 @@ d3.kblHistory = function module () {
 
   function drawRank(col) {
     //FIXME : write the rank of teams temporarily
-    //col.selectAll('text.jg-rank-timer')
+
     var theta = d3.scale.ordinal()
       .domain(d3.range(1,10))
-      .range()
+      .rangePoints([0,300]) // from 0 to 300
+
+    var drawHand = function(selection, key, className) {
+      selection.append('line')
+        .attr('class','jg-rank-hand jg-rank-'+className)
+        .attr('x1', 0).attr('y1', 0)
+        .attr('x2', x.rangeBand()*.5).attr('y2', 0)
+        .attr('transform', d3.svg.transform()
+          .translate(function(){
+              return [x.rangeBand()*.5, y.rangeBand()*.5]
+            }).rotate(function(d) {
+              return (theta(d[key])-30);
+            })
+        )
+    }
+
+    var clock = col.selectAll('.jg-rank-clock')
+        .data(function(d){return d;})
+      .enter().append('g')
+      .attr('class', 'jg-rank-clock')
+      .attr('transform', d3.svg.transform().translate(function(d,i) {return [i*x.rangeBand(), 0]}))
+
+    clock.call(drawHand, 'rank', 'wa')
+    clock.call(drawHand, 'rall_rank', 'rall')
+    clock.call(drawHand, 'r_rank', 'r')
+
+    /*
     var rank = col.selectAll('text.jg-rank-text')
         .data(function(d){return d;})
       .enter().append('text')
@@ -166,8 +192,9 @@ d3.kblHistory = function module () {
       .attr('y', function(d,i) {return y.rangeBand()*.5})
       .attr('dy', '.35em')
       .attr('text-anchor', 'middle')
-      .text(function(d) {return d.rall_rank})
-
+      .text(function(d) {return d.rank})
+      //.each(function(d) {console.log(d.rall_rank, theta(d.rall_rank))})
+    */
   }
 
   function calNestedData(_data) {
