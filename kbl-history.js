@@ -1,5 +1,4 @@
 d3.kblHistory = function module () {
-  //TODO: draw figures to represent groups
   var attrs = {
     canvasWidth : 800,
     canvasHeight : 350,
@@ -27,6 +26,22 @@ d3.kblHistory = function module () {
   var exports = function (_selection) {
     _selection.each(function(_data) {
       d3.select(this).style('width', attrs.canvasWidth+'px')//.style('height', attrs.canvasHeight+'px')
+      //TODO: add radio buttons to select current mode
+      var menu = d3.select(this).append('div')
+        .attr('class', 'jg-menu')
+
+      var radio = menu.selectAll('.jg-mode')
+          .data(modes)
+        .enter().append('input')
+        .attr('class', 'jg-mode')
+        .attr('type', 'radio')
+        .attr('name', 'jg-mode')
+        .property('value', function(d){return d})
+        .property('checked', function(d,i) {return (i===0 ? true : false)})
+        .on('click', function(d) {
+
+        })
+
 
       var width = attrs.canvasWidth - margin.left - margin.right;
       var height =  attrs.tableHeight - margin.top - margin.bottom;
@@ -56,7 +71,6 @@ d3.kblHistory = function module () {
   } // end of exports
 
   function svgInit(svg) {
-
     svg.append("g")
     .attr("class", "x axis")
     .attr("transform", d3.svg.transform().translate([margin.left, margin.top]))
@@ -67,14 +81,9 @@ d3.kblHistory = function module () {
     .attr('transform', d3.svg.transform().translate(function() {return [0,margin.top]})) //margin.left
 
     table.call(drawRows)
-
-    //TODO : draw year-blocks 1.draw winning rates 2.draw score avg.
-
   }
 
   function drawRows(table) {
-
-    //TODO : add label to row
     var row = table.selectAll('g.jg-row')
       .data(function(d) {return d}, function(d) { return d.key}) // => team level
     .enter().append('g')
@@ -138,7 +147,7 @@ d3.kblHistory = function module () {
       col.on('mouseover', mouseOverColFunc)
         .on('click', clickColFunc)
     }
-    
+
     col.append('rect')
     .attr('class', 'jg-col-block')
     .attr('x', 0)
@@ -153,11 +162,9 @@ d3.kblHistory = function module () {
   }
 
   function drawRank(col) {
-    //FIXME : write the rank of teams temporarily
-
     var theta = d3.scale.ordinal()
       .domain(d3.range(1,10))
-      .rangePoints([0,300]) // from 0 to 300
+      .rangePoints([0,270]) // from 0 to 300
 
     var drawHand = function(selection, key, className) {
       selection.append('line')
@@ -168,7 +175,7 @@ d3.kblHistory = function module () {
           .translate(function(){
               return [x.rangeBand()*.5, y.rangeBand()*.5]
             }).rotate(function(d) {
-              return (theta(d[key])-30);
+              return (theta(d[key])-45);
             })
         )
     }
@@ -179,10 +186,13 @@ d3.kblHistory = function module () {
       .attr('class', 'jg-rank-clock')
       .attr('transform', d3.svg.transform().translate(function(d,i) {return [i*x.rangeBand(), 0]}))
 
-    clock.call(drawHand, 'rank', 'wa')
+    //clock.call(drawHand, 'rank', 'wa')
     clock.call(drawHand, 'rall_rank', 'rall')
     clock.call(drawHand, 'r_rank', 'r')
-
+    //TODO: decide whether to use ranks or means?
+    //TODO: draw aracs between hands
+    //TODO: draw a dot to represent the wa rank
+    //TODO: draw ticks or the threshold to make playoffs
     /*
     var rank = col.selectAll('text.jg-rank-text')
         .data(function(d){return d;})
@@ -266,6 +276,7 @@ d3.kblHistory = function module () {
     suppRow.exit().remove();
     suppRow.call(drawCols, true)
     suppRow.call(drawLabel, true)
+    //TODO: append line charts to represent 3-parameters
   }
 
   function clickColFunc(d,i) {
