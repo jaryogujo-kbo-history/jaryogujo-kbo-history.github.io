@@ -1,5 +1,6 @@
 body {
   font-family : "Apple SD Gothic Neo","Malgun Gothic",Dotum,sans-serif;
+  background: #222;
 }
 
 div.jg-content {
@@ -39,6 +40,11 @@ g.jg-col {
   cursor : pointer;
 }
 
+g.jg-col rect {
+  fill : none;
+}
+
+/*
 g.jg-col:nth-child(even) rect{
   fill : #ddd;
 }
@@ -46,6 +52,8 @@ g.jg-col:nth-child(even) rect{
 g.jg-col:nth-child(odd) rect{
   fill : #e8e8e8;
 }
+*/
+
 
 g.jg-col.jg-mouseover rect{
   fill : #fcd589;
@@ -83,10 +91,23 @@ circle.jg-link {
   stroke: #1698d8; /* '#ff2700', '#f6b900', '#1698d8' */
 }
 
+.jg-rank-arc {
+  opacity : .75;
+}
+
 .jg-rank-arc.jg-rank-rall {
   fill: #1698d8;
 }
 
 .jg-rank-arc.jg-rank-r {
   fill: #f6b900;
+}
+
+
+g.jg-col:nth-child(odd) .jg-rank-back{
+  fill : #bbb;
+}
+
+g.jg-col:nth-child(even) .jg-rank-back{
+  fill : #eee;
 }
