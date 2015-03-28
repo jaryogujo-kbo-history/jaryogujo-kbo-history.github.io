@@ -157,17 +157,20 @@ d3.kblHistory = function module () {
       return d.width//x(d[d.length-1].year+1) - x(d[0].year);
     })
     .attr('height', y.rangeBand())
+    
 
     col.call(drawRank);
   }
 
   function drawRank(col) {
+
+    var max_rank = 9;
     var theta = d3.scale.ordinal()
-      .domain(d3.range(1,10))
+      .domain(d3.range(1,max_rank+1))
       .rangePoints([-90,180]) // from 0(3 o'clock) to 300
 
     var thetaRad = d3.scale.ordinal()
-      .domain(d3.range(1,10))
+      .domain(d3.range(1,max_rank+1))
       .rangePoints([0, Math.PI*(3/2)]) // from 0(12 o'clock) to 300 //
 
     var drawHand = function(selection, key, className) {
@@ -209,7 +212,6 @@ d3.kblHistory = function module () {
           }
         })
 
-
       selection.append('path')
         .attr('class', function(d) {
           if (d.rall_rank <= d.r_rank) {
@@ -222,10 +224,22 @@ d3.kblHistory = function module () {
             return [x.rangeBand()*.5, y.rangeBand()*.5]
           }))
         .attr('d', arc)
-
         //.style('fill', '#ddd')
     }
-
+    var drawBackArc = function(selection) {
+      var arc = d3.svg.arc()
+        .innerRadius(0)
+        .outerRadius(x.rangeBand()*.5)
+        .startAngle(0)
+        .endAngle(thetaRad(max_rank));
+      selection.append('path')
+        .attr('class', 'jg-rank-arc jg-rank-back')
+        .attr('transform', d3.svg.transform().translate(function(){
+            return [x.rangeBand()*.5, y.rangeBand()*.5]
+          }))
+        .attr('d', arc)
+        //.style('fill', col.select('rect').style('fill'));
+    }
     var clock = col.selectAll('.jg-rank-clock')
         .data(function(d){return d;})
       .enter().append('g')
@@ -234,9 +248,11 @@ d3.kblHistory = function module () {
 
 
     //TODO: decide whether to use ranks or means?
-    //TODO: draw aracs between hands
-    clock.call(drawArc)
+    //TODO: draw background arc to show the range of ranks
 
+    //TODO: draw aracs between hands
+    clock.call(drawBackArc);
+    clock.call(drawArc)
     clock.call(drawHand, 'rall_rank', 'rall')
     clock.call(drawHand, 'r_rank', 'r')
     clock.call(drawHand, 'rank', 'wa')
