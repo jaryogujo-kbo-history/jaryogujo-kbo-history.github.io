@@ -71,14 +71,22 @@ circle.jg-link {
   /*opacity : .33;*/
 }
 
-.jg-rank-wa {
+.jg-rank-hand.jg-rank-wa {
   stroke: #ff2700; /* '#ff2700', '#f6b900', '#1698d8' */
 }
 
-.jg-rank-r {
+.jg-rank-hand.jg-rank-r {
   stroke: #f6b900; /* '#ff2700', '#f6b900', '#1698d8' */
 }
 
-.jg-rank-rall {
+.jg-rank-hand.jg-rank-rall {
   stroke: #1698d8; /* '#ff2700', '#f6b900', '#1698d8' */
+}
+
+.jg-rank-arc.jg-rank-rall {
+  fill: #1698d8;
+}
+
+.jg-rank-arc.jg-rank-r {
+  fill: #f6b900;
 }

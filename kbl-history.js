@@ -164,20 +164,66 @@ d3.kblHistory = function module () {
   function drawRank(col) {
     var theta = d3.scale.ordinal()
       .domain(d3.range(1,10))
-      .rangePoints([0,270]) // from 0 to 300
+      .rangePoints([-90,180]) // from 0(3 o'clock) to 300
+
+    var thetaRad = d3.scale.ordinal()
+      .domain(d3.range(1,10))
+      .rangePoints([0, Math.PI*(3/2)]) // from 0(12 o'clock) to 300 //
 
     var drawHand = function(selection, key, className) {
       selection.append('line')
         .attr('class','jg-rank-hand jg-rank-'+className)
-        .attr('x1', 0).attr('y1', 0)
-        .attr('x2', x.rangeBand()*.5).attr('y2', 0)
+        .attr('x1', function() {
+          return 0
+        }).attr('y1', 0)
+        .attr('x2', function() {
+          return x.rangeBand()*.5
+        }).attr('y2', 0)
         .attr('transform', d3.svg.transform()
           .translate(function(){
               return [x.rangeBand()*.5, y.rangeBand()*.5]
             }).rotate(function(d) {
-              return (theta(d[key])-45);
+              return (theta(d[key]));
             })
         )
+    }
+    var drawArc = function(selection) {
+
+      var arc = d3.svg.arc()
+        .innerRadius(0)
+        .outerRadius(x.rangeBand()*.5)
+        .startAngle(function(d){
+          if (d.rall_rank >= d.r_rank) {
+
+            return thetaRad(d.r_rank)
+          } else {
+            return thetaRad(d.rall_rank)
+          }
+        })
+        .endAngle(function(d) {
+          if (d.rall_rank >= d.r_rank) {
+
+            return thetaRad(d.rall_rank)
+          }else {
+            return thetaRad(d.r_rank)
+          }
+        })
+
+
+      selection.append('path')
+        .attr('class', function(d) {
+          if (d.rall_rank <= d.r_rank) {
+            return 'jg-rank-arc jg-rank-rall'
+          } else {
+            return 'jg-rank-arc jg-rank-r'
+          }
+        })
+        .attr('transform', d3.svg.transform().translate(function(){
+            return [x.rangeBand()*.5, y.rangeBand()*.5]
+          }))
+        .attr('d', arc)
+
+        //.style('fill', '#ddd')
     }
 
     var clock = col.selectAll('.jg-rank-clock')
@@ -186,25 +232,30 @@ d3.kblHistory = function module () {
       .attr('class', 'jg-rank-clock')
       .attr('transform', d3.svg.transform().translate(function(d,i) {return [i*x.rangeBand(), 0]}))
 
-    //clock.call(drawHand, 'rank', 'wa')
-    clock.call(drawHand, 'rall_rank', 'rall')
-    clock.call(drawHand, 'r_rank', 'r')
+
     //TODO: decide whether to use ranks or means?
     //TODO: draw aracs between hands
+    clock.call(drawArc)
+
+    clock.call(drawHand, 'rall_rank', 'rall')
+    clock.call(drawHand, 'r_rank', 'r')
+    clock.call(drawHand, 'rank', 'wa')
     //TODO: draw a dot to represent the wa rank
     //TODO: draw ticks or the threshold to make playoffs
+
     /*
     var rank = col.selectAll('text.jg-rank-text')
         .data(function(d){return d;})
       .enter().append('text')
       .attr('class', 'jg-rank-text')
-      .attr('x', function(d,i) { return i*x.rangeBand() + x.rangeBand()*.5})
-      .attr('y', function(d,i) {return y.rangeBand()*.5})
-      .attr('dy', '.35em')
-      .attr('text-anchor', 'middle')
+      .attr('x', function(d,i) { return i*x.rangeBand() })//+ x.rangeBand()*.5})
+      //.attr('y', function(d,i) {return y.rangeBand()*.5})
+      .attr('dy', '.71em')
+      //.attr('text-anchor', 'middle')
       .text(function(d) {return d.rank})
       //.each(function(d) {console.log(d.rall_rank, theta(d.rall_rank))})
     */
+
   }
 
   function calNestedData(_data) {
@@ -335,7 +386,7 @@ d3.kblHistory = function module () {
     .target(function(d) { return {"x":d.target.y, "y":d.target.x}; })
     .projection(function(d) { return [d.y, d.x]; });
 
-    //FIXME : draw links correctly
+    //FIXME: change diagonals colors
     var links = svg.select('.jg-table')
       .selectAll('.jg-links')
         .data(linkDataArr, function(d){return d.key})
