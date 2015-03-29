@@ -37,7 +37,7 @@ div.jg-chart {
 }
 
 .jg-rank-text text{
-  fill : #bbb;
+  fill : #444;/*#bbb;*/
 }
 
 g.jg-col {
@@ -64,7 +64,11 @@ g.jg-col.jg-mouseover rect{
 }
 
 g.jg-col.jg-clicked rect {
-  fill : #f6c18c;
+  /*fill : #f6c18c;*/
+}
+
+g.jg-col.jg-hidden  {
+  opacity: .5;
 }
 
 path.jg-link {
@@ -88,11 +92,11 @@ circle.jg-link {
 }
 
 .jg-rank-hand.jg-rank-r, .jg-rank-line .jg-rank-r{
-  stroke: #f6b900; /* '#ff2700', '#f6b900', '#1698d8' */
+  stroke: #1698d8; /* '#ff2700', '#f6b900', '#1698d8' */
 }
 
 .jg-rank-hand.jg-rank-rall, .jg-rank-line .jg-rank-rall {
-  stroke: #1698d8; /* '#ff2700', '#f6b900', '#1698d8' */
+  stroke: #f6b900; /* '#ff2700', '#f6b900', '#1698d8' */
 }
 
 .jg-rank-hand.jg-rank-dup {
@@ -104,11 +108,11 @@ circle.jg-link {
 }
 
 .jg-rank-arc.jg-rank-rall {
-  fill: #1698d8;
+  fill: #f6b900;
 }
 
 .jg-rank-arc.jg-rank-r {
-  fill: #f6b900;
+  fill: #1698d8;
 }
 
 

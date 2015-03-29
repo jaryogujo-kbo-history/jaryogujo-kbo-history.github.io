@@ -23,6 +23,7 @@ d3.kblHistory = function module () {
     'CB':'청보','TP':'태평양','HD':'현대'})
   var svg, curData, nestedByTeam, nestedByCoach, curMode = modes[0], suppData=[];
   var color = d3.scale.category10();
+
   var exports = function (_selection) {
     _selection.each(function(_data) {
       d3.select(this).style('width', attrs.canvasWidth+'px')//.style('height', attrs.canvasHeight+'px')
@@ -145,6 +146,9 @@ d3.kblHistory = function module () {
 
     if(!isSupp) {
       col.on('mouseover', mouseOverColFunc)
+        .on('mouseout', function() {
+          col.classed({'jg-hidden':false, 'jg-mouseover':false})
+        })
         .on('click', clickColFunc)
     }
 
@@ -215,7 +219,7 @@ d3.kblHistory = function module () {
 
     var rankCol = d3.scale.linear()
       .domain([1,max_rank])
-      .range(['#ff2700', '#fff7f5'])
+      .range(['#22cb00', '#fbfefa'])
       .interpolate(d3.interpolateRgb)
 
     var radius = d3.scale.ordinal()
@@ -301,7 +305,6 @@ d3.kblHistory = function module () {
         return [i*x.rangeBand(), 0]
       }))
 
-    /*
     rank.append('rect')
       .attr('x', 0).attr('y', 0)
       .attr('width', x.rangeBand()*.5)
@@ -309,7 +312,7 @@ d3.kblHistory = function module () {
       .style('fill', function(d) {
         return rankCol(d.rank);
       })
-    */
+
     rank.append('text')
       .attr('dx', '.175em')
       .attr('dy', '.9em')
@@ -409,9 +412,12 @@ d3.kblHistory = function module () {
   function mouseOverColFunc(d,i) {
     var targetName = getTargetNameFromCol(d);
     var col = svg.select('.jg-table').selectAll('.jg-col');
-    col.classed({'jg-mouseover':false})
+    col.classed({'jg-mouseover':false, 'jg-hidden':false})
     var overed = col.filter(function(d) {return getTargetNameFromCol(d) === targetName})
       .classed({'jg-mouseover':true})
+    col.filter(function() {
+      return !(d3.select(this).classed('jg-mouseover'))
+    }).classed({'jg-hidden':true})
 
     var linkData = [];
     overed.call(getLinkData, targetName, linkData);
