@@ -32,8 +32,12 @@ div.jg-chart {
   stroke: #000;
 }
 
-text.jg-rank-text {
-  fill : #ddd;
+.jg-rank-text rect{
+  stroke : none;
+}
+
+.jg-rank-text text{
+  fill : #444;
 }
 
 g.jg-col {
@@ -75,19 +79,19 @@ circle.jg-link {
 }
 
 .jg-rank-hand {
-  stroke-width:1px;
+  stroke-width: 2px;
   /*opacity : .33;*/
 }
 
-.jg-rank-hand.jg-rank-wa {
+.jg-rank-hand.jg-rank-wa, .jg-rank-line .jg-rank-wa {
   stroke: #ff2700; /* '#ff2700', '#f6b900', '#1698d8' */
 }
 
-.jg-rank-hand.jg-rank-r {
+.jg-rank-hand.jg-rank-r, .jg-rank-line .jg-rank-r{
   stroke: #f6b900; /* '#ff2700', '#f6b900', '#1698d8' */
 }
 
-.jg-rank-hand.jg-rank-rall {
+.jg-rank-hand.jg-rank-rall, .jg-rank-line .jg-rank-rall {
   stroke: #1698d8; /* '#ff2700', '#f6b900', '#1698d8' */
 }
 
@@ -105,9 +109,11 @@ circle.jg-link {
 
 
 g.jg-col:nth-child(odd) .jg-rank-back{
-  fill : #bbb;
+  fill : #aaa;
 }
 
 g.jg-col:nth-child(even) .jg-rank-back{
-  fill : #eee;
+  fill : #e8e9e8;
+}
+stroke
 }

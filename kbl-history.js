@@ -160,23 +160,50 @@ d3.kblHistory = function module () {
 
 
     col.call(drawRankArc);
+    //col.call(drawRankLine);
+  }
+
+  function drawBars(col) {
+
   }
 
   function drawRankLine(col) {
     var max_rank = 9;
-    var lineX = d3.scale.ordinal
+    var lineX = d3.scale.ordinal()
       .domain(d3.range(1,max_rank+1))
-      .rangePoints([0,x.rangeBand])
+      .rangePoints([0,x.rangeBand()])
+    var lineY = d3.scale.ordinal()
+      .domain(d3.range(1,max_rank+1))
+      .rangePoints([0,y.rangeBand()])
+
     var line = col.selectAll('.jg-rank-line')
         .data(function(d){return d;})
       .enter().append('g')
       .attr('class', 'jg-rank-line')
       .attr('transform', d3.svg.transform().translate(function(d,i) {return [i*x.rangeBand(), 0]}))
 
+    var drawLine = function(selection, key, className) {
+      line.append('line')
+        .attr('class', 'jg-rank-'+className)
+        .attr('x1', function(d){return lineX(d[key])})
+        .attr('x2', function(d){return lineX(d[key])})
+        .attr('y1', 0)
+        .attr('y2', y.rangeBand())
+      line.append('line')
+        .attr('class', 'jg-rank-'+className)
+        .attr('y1', function(d){return lineY(d[key])})
+        .attr('y2', function(d){return lineY(d[key])})
+        .attr('x1', 0)
+        .attr('x2', x.rangeBand())
+    }
+
+    line.call(drawLine, 'rall_rank', 'rall')
+    line.call(drawLine, 'r_rank', 'r')
+    line.call(drawLine, 'rank', 'wa')
   }
 
   function drawRankArc(col) {
-
+    //col.selectAll('rect').style('fill', 'none')
     var max_rank = 9;
     var theta = d3.scale.ordinal()
       .domain(d3.range(1,max_rank+1))
@@ -185,6 +212,11 @@ d3.kblHistory = function module () {
     var thetaRad = d3.scale.ordinal()
       .domain(d3.range(1,max_rank+1))
       .rangePoints([0, Math.PI*(3/2)]) // from 0(12 o'clock) to 300 //
+
+    var rankCol = d3.scale.linear()
+      .domain([1,max_rank])
+      .range(['#ff2700', '#fff7f5'])
+      .interpolate(d3.interpolateRgb)
 
     var drawHand = function(selection, key, className) {
       selection.append('line')
@@ -253,12 +285,12 @@ d3.kblHistory = function module () {
         .attr('d', arc)
         //.style('fill', col.select('rect').style('fill'));
     }
+
     var clock = col.selectAll('.jg-rank-clock')
         .data(function(d){return d;})
       .enter().append('g')
       .attr('class', 'jg-rank-clock')
       .attr('transform', d3.svg.transform().translate(function(d,i) {return [i*x.rangeBand(), 0]}))
-
 
     //TODO: decide whether to use ranks or means?
     //TODO: draw background arc to show the range of ranks
@@ -268,13 +300,34 @@ d3.kblHistory = function module () {
     clock.call(drawArc)
     clock.call(drawHand, 'rall_rank', 'rall')
     clock.call(drawHand, 'r_rank', 'r')
-    clock.call(drawHand, 'rank', 'wa')
+    //clock.call(drawHand, 'rank', 'wa')
     //TODO: draw a dot to represent the wa rank
     //TODO: draw ticks or the threshold to make playoffs
 
+    //var rankRect = col.selectAll('rect.jg-rank-text-back')
 
-    var rank = col.selectAll('text.jg-rank-text')
+    var rank = col.selectAll('.jg-rank-text')
         .data(function(d){return d;})
+      .enter().append('g')
+      .attr('class', 'jg-rank-text')
+      .attr('transform', d3.svg.transform().translate(function(d,i){
+        return [i*x.rangeBand(), 0]
+      }))
+
+    rank.append('rect')
+      .attr('x', 0).attr('y', 0)
+      .attr('width', x.rangeBand()*.5)
+      .attr('height', y.rangeBand()*.5)
+      .style('fill', function(d) {
+        return rankCol(d.rank);
+      })
+
+    rank.append('text')
+      .attr('dx', '.35em')
+      .attr('dy', '1em')
+      .text(function(d) {return d.rank})
+
+    /*
       .enter().append('text')
       .attr('class', 'jg-rank-text')
       .attr('x', function(d,i) { return i*x.rangeBand() })//+ x.rangeBand()*.5})
@@ -284,7 +337,7 @@ d3.kblHistory = function module () {
       //.attr('text-anchor', 'middle')
       .text(function(d) {return d.rank})
       //.each(function(d) {console.log(d.rall_rank, theta(d.rall_rank))})
-
+    */
 
   }
 
