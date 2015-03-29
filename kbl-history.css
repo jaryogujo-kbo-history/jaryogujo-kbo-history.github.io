@@ -37,7 +37,7 @@ div.jg-chart {
 }
 
 .jg-rank-text text{
-  fill : #444;
+  fill : #bbb;
 }
 
 g.jg-col {
@@ -93,6 +93,10 @@ circle.jg-link {
 
 .jg-rank-hand.jg-rank-rall, .jg-rank-line .jg-rank-rall {
   stroke: #1698d8; /* '#ff2700', '#f6b900', '#1698d8' */
+}
+
+.jg-rank-hand.jg-rank-dup {
+  stroke: #22cb00
 }
 
 .jg-rank-arc {

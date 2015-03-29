@@ -218,14 +218,18 @@ d3.kblHistory = function module () {
       .range(['#ff2700', '#fff7f5'])
       .interpolate(d3.interpolateRgb)
 
+    var radius = d3.scale.ordinal()
+      .domain(d3.range(1,max_rank+1))
+      .rangePoints([x.rangeBand()*.45, x.rangeBand()*.45])
+
     var drawHand = function(selection, key, className) {
       selection.append('line')
         .attr('class','jg-rank-hand jg-rank-'+className)
         .attr('x1', function() {
           return 0
         }).attr('y1', 0)
-        .attr('x2', function() {
-          return x.rangeBand()*.5
+        .attr('x2', function(d) {
+          return radius(d.rank)
         }).attr('y2', 0)
         .attr('transform', d3.svg.transform()
           .translate(function(){
@@ -239,7 +243,9 @@ d3.kblHistory = function module () {
 
       var arc = d3.svg.arc()
         .innerRadius(0)
-        .outerRadius(x.rangeBand()*.5)
+        .outerRadius(function(d) {
+          return radius(d.rank);
+        })//x.rangeBand()*.5)
         .startAngle(function(d){
           if (d.rall_rank >= d.r_rank) {
 
@@ -274,8 +280,9 @@ d3.kblHistory = function module () {
     var drawBackArc = function(selection) {
       var arc = d3.svg.arc()
         .innerRadius(0)
-        .outerRadius(x.rangeBand()*.5)
-        .startAngle(0)
+        .outerRadius(function(d) {
+          return radius(d.rank);
+        }).startAngle(0)
         .endAngle(thetaRad(max_rank));
       selection.append('path')
         .attr('class', 'jg-rank-arc jg-rank-back')
@@ -285,6 +292,28 @@ d3.kblHistory = function module () {
         .attr('d', arc)
         //.style('fill', col.select('rect').style('fill'));
     }
+
+    var rank = col.selectAll('.jg-rank-text')
+        .data(function(d){return d;})
+      .enter().append('g')
+      .attr('class', 'jg-rank-text')
+      .attr('transform', d3.svg.transform().translate(function(d,i){
+        return [i*x.rangeBand(), 0]
+      }))
+
+    /*
+    rank.append('rect')
+      .attr('x', 0).attr('y', 0)
+      .attr('width', x.rangeBand()*.5)
+      .attr('height', y.rangeBand()*.5)
+      .style('fill', function(d) {
+        return rankCol(d.rank);
+      })
+    */
+    rank.append('text')
+      .attr('dx', '.175em')
+      .attr('dy', '.9em')
+      .text(function(d) {return d.rank})
 
     var clock = col.selectAll('.jg-rank-clock')
         .data(function(d){return d;})
@@ -297,35 +326,23 @@ d3.kblHistory = function module () {
 
     //TODO: draw aracs between hands
     clock.call(drawBackArc);
-    clock.call(drawArc)
-    clock.call(drawHand, 'rall_rank', 'rall')
-    clock.call(drawHand, 'r_rank', 'r')
+    clock.each(function(d,i) {
+      if (d.rall_rank == d.r_rank) {
+        d3.select(this).call(drawHand, 'r_rank', 'dup')
+      } else {
+        d3.select(this).call(drawArc)
+        d3.select(this).call(drawHand, 'rall_rank', 'rall')
+        d3.select(this).call(drawHand, 'r_rank', 'r')
+      }
+    })
+
     //clock.call(drawHand, 'rank', 'wa')
     //TODO: draw a dot to represent the wa rank
     //TODO: draw ticks or the threshold to make playoffs
 
     //var rankRect = col.selectAll('rect.jg-rank-text-back')
 
-    var rank = col.selectAll('.jg-rank-text')
-        .data(function(d){return d;})
-      .enter().append('g')
-      .attr('class', 'jg-rank-text')
-      .attr('transform', d3.svg.transform().translate(function(d,i){
-        return [i*x.rangeBand(), 0]
-      }))
 
-    rank.append('rect')
-      .attr('x', 0).attr('y', 0)
-      .attr('width', x.rangeBand()*.5)
-      .attr('height', y.rangeBand()*.5)
-      .style('fill', function(d) {
-        return rankCol(d.rank);
-      })
-
-    rank.append('text')
-      .attr('dx', '.35em')
-      .attr('dy', '1em')
-      .text(function(d) {return d.rank})
 
     /*
       .enter().append('text')
