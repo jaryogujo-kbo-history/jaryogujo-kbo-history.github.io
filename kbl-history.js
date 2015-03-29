@@ -157,12 +157,25 @@ d3.kblHistory = function module () {
       return d.width//x(d[d.length-1].year+1) - x(d[0].year);
     })
     .attr('height', y.rangeBand())
-    
 
-    col.call(drawRank);
+
+    col.call(drawRankArc);
   }
 
-  function drawRank(col) {
+  function drawRankLine(col) {
+    var max_rank = 9;
+    var lineX = d3.scale.ordinal
+      .domain(d3.range(1,max_rank+1))
+      .rangePoints([0,x.rangeBand])
+    var line = col.selectAll('.jg-rank-line')
+        .data(function(d){return d;})
+      .enter().append('g')
+      .attr('class', 'jg-rank-line')
+      .attr('transform', d3.svg.transform().translate(function(d,i) {return [i*x.rangeBand(), 0]}))
+
+  }
+
+  function drawRankArc(col) {
 
     var max_rank = 9;
     var theta = d3.scale.ordinal()
@@ -259,18 +272,19 @@ d3.kblHistory = function module () {
     //TODO: draw a dot to represent the wa rank
     //TODO: draw ticks or the threshold to make playoffs
 
-    /*
+
     var rank = col.selectAll('text.jg-rank-text')
         .data(function(d){return d;})
       .enter().append('text')
       .attr('class', 'jg-rank-text')
       .attr('x', function(d,i) { return i*x.rangeBand() })//+ x.rangeBand()*.5})
       //.attr('y', function(d,i) {return y.rangeBand()*.5})
-      .attr('dy', '.71em')
+      .attr('dx', '.35em')
+      .attr('dy', '1em')
       //.attr('text-anchor', 'middle')
       .text(function(d) {return d.rank})
       //.each(function(d) {console.log(d.rall_rank, theta(d.rall_rank))})
-    */
+
 
   }
 
