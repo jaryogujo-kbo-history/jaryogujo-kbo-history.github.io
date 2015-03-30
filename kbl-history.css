@@ -37,7 +37,7 @@ div.jg-chart {
 }
 
 .jg-rank-text text{
-  fill : #444;/*#bbb;*/
+  fill : #bbb;/*#444;*/
 }
 
 g.jg-col {
@@ -83,7 +83,7 @@ circle.jg-link {
 }
 
 .jg-rank-hand {
-  stroke-width: 2px;
+  stroke-width: 1px;
   /*opacity : .33;*/
 }
 

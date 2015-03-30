@@ -304,7 +304,7 @@ d3.kblHistory = function module () {
       .attr('transform', d3.svg.transform().translate(function(d,i){
         return [i*x.rangeBand(), 0]
       }))
-
+    /*
     rank.append('rect')
       .attr('x', 0).attr('y', 0)
       .attr('width', x.rangeBand()*.5)
@@ -312,7 +312,7 @@ d3.kblHistory = function module () {
       .style('fill', function(d) {
         return rankCol(d.rank);
       })
-
+      */
     rank.append('text')
       .attr('dx', '.175em')
       .attr('dy', '.9em')
