@@ -7,6 +7,6 @@
 $ bower install
 ```
 
-예시 
+예시
 ---
-[http://173.192.142.39:8803/](http://173.192.142.39:8803/)
+[http://wonderino.github.io/kbl-history//](http://wonderino.github.io/kbl-history/)
