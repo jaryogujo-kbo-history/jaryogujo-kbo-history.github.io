@@ -1,13 +1,21 @@
+/*
+TODO: 플레이오프 & 우승 표시
+[x] TODO: 순위 -> parameter 사용
+TODO: 팀별 평균 계산 <- 시간 변화에 따라 변동
+TODO: 시즌용 라인 그래프 -> 팀별 득실점 평균 -> 편차 그리기기
+TODO: 팀별  & 감독별 요약 정보 => 연속 감독 || 팀별 요약 챠트
+
+*/
 d3.kblHistory = function module () {
   var attrs = {
-    canvasWidth : 800,
+    canvasWidth : 820,
     canvasHeight : 350,
     tableHeight : 300,
     isTeamMode : true,
     blockColExtent : [],
   };//end of attributes
   var modes =  ['team', 'coach'];
-  var margin = {top:20, right : 10, bottom : 10, left : 50}
+  var margin = {top:20, right : 10, bottom : 10, left : 70}
   var x = d3.scale.ordinal(), y=d3.scale.ordinal() ;
   var xAxis = d3.svg.axis()
     .tickSize(0)
@@ -23,6 +31,8 @@ d3.kblHistory = function module () {
     'CB':'청보','TP':'태평양','HD':'현대'})
   var svg, curData, nestedByTeam, nestedByCoach, curMode = modes[0], suppData=[];
   var color = d3.scale.category10();
+  var thetaR = d3.scale.linear().range([0, Math.PI*(3/2)]), thetaRall = d3.scale.linear().range([0, Math.PI*(3/2)]);
+  var curYearExtent;
 
   var exports = function (_selection) {
     _selection.each(function(_data) {
@@ -48,6 +58,11 @@ d3.kblHistory = function module () {
       var height =  attrs.tableHeight - margin.top - margin.bottom;
       var yearExtent = d3.extent(_data, function(d) {return d.year})
       var waExtent = d3.extent(_data, function(d) {return d.wa})
+      var rExtent = d3.extent(_data, function(d){return d.normal_r})
+      var rallExtent = d3.extent(_data, function(d){return d.normal_rall})
+      thetaRall.domain([d3.min([rExtent[0], rallExtent[0]]), d3.max([rExtent[1], rallExtent[1]])])
+      thetaR.domain([thetaRall.domain()[1], thetaRall.domain()[0]])
+
 
       calRanks(_data);
       calNestedData(_data);
@@ -57,6 +72,7 @@ d3.kblHistory = function module () {
       y.rangeRoundBands([0, height])
         .domain(curData.map(function(d) {return d.key}))
       xAxis.scale(x)
+      curYearExtent = yearExtent;
 
       if (!svg) {
         svg = _selection.selectAll('svg.jg-svg')
@@ -82,6 +98,15 @@ d3.kblHistory = function module () {
     .attr('transform', d3.svg.transform().translate(function() {return [0,margin.top]})) //margin.left
 
     table.call(drawRows)
+    var avgData = getAverageData(curData, curYearExtent);
+
+    svg.selectAll('.jg-row-avg')
+      .data(avgData)
+    .enter().append('g')
+    .attr('transform', d3.svg.transform().translate(function(d,i) {
+      return [0, i*y.rangeBand()];
+    }))
+    .call(drawRankArc, true);
   }
 
   function drawRows(table) {
@@ -123,7 +148,7 @@ d3.kblHistory = function module () {
           linkDataArr.push({key:targetName, values:linkData})
         })
 
-        drawDiagonals(linkDataArr);
+        //drawDiagonals(linkDataArr);
       })
   }
 
@@ -140,8 +165,9 @@ d3.kblHistory = function module () {
     })
     .attr('class', 'jg-col')
     .attr('transform', d3.svg.transform().translate(function(d) {
-      d.x = x(d[0].year) + margin.left;
-      return [d.x, 0]
+      var dx = x(d[0].year) + margin.left;
+      //d.x = x(d[0].year) + margin.left;
+      return [dx, 0]
     }))
 
     if(!isSupp) {
@@ -157,8 +183,9 @@ d3.kblHistory = function module () {
     .attr('x', 0)
     .attr('y', 0)
     .attr('width', function(d) {
-      d.width = d.length * x.rangeBand();
-      return d.width//x(d[d.length-1].year+1) - x(d[0].year);
+      var dwidth = d.length * x.rangeBand();
+      //d.width = d.length * x.rangeBand();
+      return dwidth//x(d[d.length-1].year+1) - x(d[0].year);
     })
     .attr('height', y.rangeBand())
 
@@ -206,9 +233,11 @@ d3.kblHistory = function module () {
     line.call(drawLine, 'rank', 'wa')
   }
 
-  function drawRankArc(col) {
+  function drawRankArc(col, isAvg) {
+    isAvg = isAvg || false;
     //col.selectAll('rect').style('fill', 'none')
     var max_rank = 9;
+    /*
     var theta = d3.scale.ordinal()
       .domain(d3.range(1,max_rank+1))
       .rangePoints([-90,180]) // from 0(3 o'clock) to 300
@@ -216,6 +245,7 @@ d3.kblHistory = function module () {
     var thetaRad = d3.scale.ordinal()
       .domain(d3.range(1,max_rank+1))
       .rangePoints([0, Math.PI*(3/2)]) // from 0(12 o'clock) to 300 //
+    */
 
     var rankCol = d3.scale.linear()
       .domain([1,max_rank])
@@ -239,7 +269,7 @@ d3.kblHistory = function module () {
           .translate(function(){
               return [x.rangeBand()*.5, y.rangeBand()*.5]
             }).rotate(function(d) {
-              return (theta(d[key]));
+              return (key=='normal_r' ? thetaR(d[key]) :thetaRall(d[key]) ) * (180/Math.PI) -90;
             })
         )
     }
@@ -251,28 +281,29 @@ d3.kblHistory = function module () {
           return radius(d.rank);
         })//x.rangeBand()*.5)
         .startAngle(function(d){
-          if (d.rall_rank >= d.r_rank) {
-
-            return thetaRad(d.r_rank)
+          var r = thetaR(d.normal_r), rall= thetaRall(d.normal_rall)
+          if (r <= rall) {
+            return r
           } else {
-            return thetaRad(d.rall_rank)
+            return rall
           }
         })
         .endAngle(function(d) {
-          if (d.rall_rank >= d.r_rank) {
-
-            return thetaRad(d.rall_rank)
-          }else {
-            return thetaRad(d.r_rank)
+          var r = thetaR(d.normal_r), rall= thetaRall(d.normal_rall)
+          if (r <= rall) {
+            return rall
+          } else {
+            return r
           }
         })
 
       selection.append('path')
         .attr('class', function(d) {
-          if (d.rall_rank <= d.r_rank) {
-            return 'jg-rank-arc jg-rank-rall'
-          } else {
+          var r = thetaR(d.normal_r), rall= thetaRall(d.normal_rall)
+          if (r <= rall) {
             return 'jg-rank-arc jg-rank-r'
+          } else {
+            return 'jg-rank-arc jg-rank-rall'
           }
         })
         .attr('transform', d3.svg.transform().translate(function(){
@@ -286,8 +317,8 @@ d3.kblHistory = function module () {
         .innerRadius(0)
         .outerRadius(function(d) {
           return radius(d.rank);
-        }).startAngle(0)
-        .endAngle(thetaRad(max_rank));
+        }).startAngle(thetaR.range()[0])
+        .endAngle(thetaR.range()[1]);
       selection.append('path')
         .attr('class', 'jg-rank-arc jg-rank-back')
         .attr('transform', d3.svg.transform().translate(function(){
@@ -296,27 +327,28 @@ d3.kblHistory = function module () {
         .attr('d', arc)
         //.style('fill', col.select('rect').style('fill'));
     }
-
-    var rank = col.selectAll('.jg-rank-text')
-        .data(function(d){return d;})
-      .enter().append('g')
-      .attr('class', 'jg-rank-text')
-      .attr('transform', d3.svg.transform().translate(function(d,i){
-        return [i*x.rangeBand(), 0]
-      }))
-    /*
-    rank.append('rect')
-      .attr('x', 0).attr('y', 0)
-      .attr('width', x.rangeBand()*.5)
-      .attr('height', y.rangeBand()*.5)
-      .style('fill', function(d) {
-        return rankCol(d.rank);
-      })
-      */
-    rank.append('text')
-      .attr('dx', '.175em')
-      .attr('dy', '.9em')
-      .text(function(d) {return d.rank})
+    if (!isAvg) {
+      var rank = col.selectAll('.jg-rank-text')
+          .data(function(d){return d;})
+        .enter().append('g')
+        .attr('class', 'jg-rank-text')
+        .attr('transform', d3.svg.transform().translate(function(d,i){
+          return [i*x.rangeBand(), 0]
+        }))
+      /*
+      rank.append('rect')
+        .attr('x', 0).attr('y', 0)
+        .attr('width', x.rangeBand()*.5)
+        .attr('height', y.rangeBand()*.5)
+        .style('fill', function(d) {
+          return rankCol(d.rank);
+        })
+        */
+      rank.append('text')
+        .attr('dx', '.175em')
+        .attr('dy', '.9em')
+        .text(function(d) {return d.rank})
+    }
 
     var clock = col.selectAll('.jg-rank-clock')
         .data(function(d){return d;})
@@ -324,40 +356,40 @@ d3.kblHistory = function module () {
       .attr('class', 'jg-rank-clock')
       .attr('transform', d3.svg.transform().translate(function(d,i) {return [i*x.rangeBand(), 0]}))
 
-    //TODO: decide whether to use ranks or means?
-    //TODO: draw background arc to show the range of ranks
-
-    //TODO: draw aracs between hands
     clock.call(drawBackArc);
+
     clock.each(function(d,i) {
-      if (d.rall_rank == d.r_rank) {
-        d3.select(this).call(drawHand, 'r_rank', 'dup')
+      if (d.normal_rall == d.normal_r) {
+        d3.select(this).call(drawHand, 'normal_r', 'dup')
       } else {
         d3.select(this).call(drawArc)
-        d3.select(this).call(drawHand, 'rall_rank', 'rall')
-        d3.select(this).call(drawHand, 'r_rank', 'r')
+        d3.select(this).call(drawHand, 'normal_rall', 'rall')
+        d3.select(this).call(drawHand, 'normal_r', 'r')
       }
     })
 
     //clock.call(drawHand, 'rank', 'wa')
-    //TODO: draw a dot to represent the wa rank
-    //TODO: draw ticks or the threshold to make playoffs
-
     //var rankRect = col.selectAll('rect.jg-rank-text-back')
+  }
 
+  function getAverageData(targetData, yearExtent) {
+    return targetData.map(function(d) {
+      var totalR = totalRall = 0;
+      d.values.forEach(function(dd) { //team
+        dd.values.forEach(function(ddd) { //coach
+          ddd.forEach(function(dddd) {
+            if (typeof dddd === 'object' && dddd.hasOwnProperty('normal_r')) {
+              totalR += dddd.normal_r;
+              totalRall += dddd.normal_rall;
+            }
+          })
+        })
+      })
 
-
-    /*
-      .enter().append('text')
-      .attr('class', 'jg-rank-text')
-      .attr('x', function(d,i) { return i*x.rangeBand() })//+ x.rangeBand()*.5})
-      //.attr('y', function(d,i) {return y.rangeBand()*.5})
-      .attr('dx', '.35em')
-      .attr('dy', '1em')
-      //.attr('text-anchor', 'middle')
-      .text(function(d) {return d.rank})
-      //.each(function(d) {console.log(d.rall_rank, theta(d.rall_rank))})
-    */
+      var avgR = totalR/(yearExtent[1] - yearExtent[0] + 1);
+      var avgRall = totalRall/(yearExtent[1] - yearExtent[0] + 1);
+      return [{'key':d.key, 'normal_r':avgR, 'normal_rall':avgRall }]
+    })
 
   }
 
@@ -409,6 +441,7 @@ d3.kblHistory = function module () {
     return (curMode == modes[0] ? d[0].first_coach_name : d[0].final_team_code)
   }
 
+
   function mouseOverColFunc(d,i) {
     var targetName = getTargetNameFromCol(d);
     var col = svg.select('.jg-table').selectAll('.jg-col');
@@ -419,9 +452,9 @@ d3.kblHistory = function module () {
       return !(d3.select(this).classed('jg-mouseover'))
     }).classed({'jg-hidden':true})
 
-    var linkData = [];
-    overed.call(getLinkData, targetName, linkData);
-    drawDiagonals([{key:targetName, values:linkData}]);
+    //var linkData = [];
+    //overed.call(getLinkData, targetName, linkData);
+    //drawDiagonals([{key:targetName, values:linkData}]);
 
     var suppRow = svg.selectAll('.jg-supp.jg-row')
       .data([{key:targetName, values:overed.data()}], function(d){ return d.key})
@@ -433,7 +466,6 @@ d3.kblHistory = function module () {
     suppRow.exit().remove();
     suppRow.call(drawCols, true)
     suppRow.call(drawLabel, true)
-    //TODO: append line charts to represent 3-parameters
   }
 
   function clickColFunc(d,i) {
@@ -492,7 +524,6 @@ d3.kblHistory = function module () {
     .target(function(d) { return {"x":d.target.y, "y":d.target.x}; })
     .projection(function(d) { return [d.y, d.x]; });
 
-    //FIXME: change diagonals colors
     var links = svg.select('.jg-table')
       .selectAll('.jg-links')
         .data(linkDataArr, function(d){return d.key})
