@@ -9,13 +9,13 @@ TODO: 팀별  & 감독별 요약 정보 => 연속 감독 || 팀별 요약 챠트
 d3.kblHistory = function module () {
   var attrs = {
     canvasWidth : 820,
-    canvasHeight : 350,
-    tableHeight : 300,
+    canvasHeight : 360,
+    tableHeight : 360,
     isTeamMode : true,
     blockColExtent : [],
   };//end of attributes
   var modes =  ['team', 'coach'];
-  var margin = {top:20, right : 10, bottom : 10, left : 70}
+  var margin = {top:60, right : 10, bottom : 10, left : 70}
   var x = d3.scale.ordinal(), y=d3.scale.ordinal() ;
   var xAxis = d3.svg.axis()
     .tickSize(0)
@@ -55,7 +55,7 @@ d3.kblHistory = function module () {
 
 
       var width = attrs.canvasWidth - margin.left - margin.right;
-      var height =  attrs.tableHeight - margin.top - margin.bottom;
+      var height =  attrs.canvasHeight - margin.top - margin.bottom;
       var yearExtent = d3.extent(_data, function(d) {return d.year})
       var waExtent = d3.extent(_data, function(d) {return d.wa})
       var rExtent = d3.extent(_data, function(d){return d.normal_r})
@@ -103,8 +103,9 @@ d3.kblHistory = function module () {
     svg.selectAll('.jg-row-avg')
       .data(avgData)
     .enter().append('g')
+    .attr('class', 'jg-row-avg')
     .attr('transform', d3.svg.transform().translate(function(d,i) {
-      return [0, i*y.rangeBand()];
+      return [margin.left*.15, i*y.rangeBand()+margin.top];
     }))
     .call(drawRankArc, true);
   }
@@ -252,19 +253,18 @@ d3.kblHistory = function module () {
       .range(['#22cb00', '#fbfefa'])
       .interpolate(d3.interpolateRgb)
 
-    var radius = d3.scale.ordinal()
+    var radius = x.rangeBand()*.45/*d3.scale.ordinal()
       .domain(d3.range(1,max_rank+1))
-      .rangePoints([x.rangeBand()*.45, x.rangeBand()*.45])
+      .rangePoints([x.rangeBand()*.45, x.rangeBand()*.45])*/
 
     var drawHand = function(selection, key, className) {
+
       selection.append('line')
         .attr('class','jg-rank-hand jg-rank-'+className)
         .attr('x1', function() {
           return 0
         }).attr('y1', 0)
-        .attr('x2', function(d) {
-          return radius(d.rank)
-        }).attr('y2', 0)
+        .attr('x2', radius).attr('y2', 0)
         .attr('transform', d3.svg.transform()
           .translate(function(){
               return [x.rangeBand()*.5, y.rangeBand()*.5]
@@ -277,9 +277,7 @@ d3.kblHistory = function module () {
 
       var arc = d3.svg.arc()
         .innerRadius(0)
-        .outerRadius(function(d) {
-          return radius(d.rank);
-        })//x.rangeBand()*.5)
+        .outerRadius(radius)//x.rangeBand()*.5)
         .startAngle(function(d){
           var r = thetaR(d.normal_r), rall= thetaRall(d.normal_rall)
           if (r <= rall) {
@@ -315,9 +313,8 @@ d3.kblHistory = function module () {
     var drawBackArc = function(selection) {
       var arc = d3.svg.arc()
         .innerRadius(0)
-        .outerRadius(function(d) {
-          return radius(d.rank);
-        }).startAngle(thetaR.range()[0])
+        .outerRadius(radius)
+        .startAngle(thetaR.range()[0])
         .endAngle(thetaR.range()[1]);
       selection.append('path')
         .attr('class', 'jg-rank-arc jg-rank-back')

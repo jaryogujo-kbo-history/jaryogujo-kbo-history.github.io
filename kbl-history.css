@@ -115,7 +115,9 @@ circle.jg-link {
   fill: #1698d8;
 }
 
-
+g.jg-row-avg .jg-rank-back {
+  fill : #e8e9e8;
+}
 g.jg-col:nth-child(odd) .jg-rank-back{
   fill : #aaa;
 }
