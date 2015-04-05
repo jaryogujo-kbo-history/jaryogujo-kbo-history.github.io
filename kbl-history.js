@@ -58,9 +58,9 @@ d3.kblHistory = function module () {
       var height =  attrs.canvasHeight - margin.top - margin.bottom;
       var yearExtent = d3.extent(_data, function(d) {return d.year})
       var waExtent = d3.extent(_data, function(d) {return d.wa})
-      var rExtent = d3.extent(_data, function(d){return d.normal_r})
-      var rallExtent = d3.extent(_data, function(d){return d.normal_rall})
-      thetaRall.domain([d3.min([rExtent[0], rallExtent[0]]), d3.max([rExtent[1], rallExtent[1]])])
+      var normalRExtent = d3.extent(_data, function(d){return d.normal_r})
+      var normalRallExtent = d3.extent(_data, function(d){return d.normal_rall})
+      thetaRall.domain([d3.min([normalRExtent[0], normalRallExtent[0]]), d3.max([normalRExtent[1], normalRallExtent[1]])])
       thetaR.domain([thetaRall.domain()[1], thetaRall.domain()[0]])
 
 
@@ -74,23 +74,28 @@ d3.kblHistory = function module () {
       xAxis.scale(x)
       curYearExtent = yearExtent;
 
+
+      var rExtent = d3.extent(_data, function(d){return d.r});
+      var rallExtent = d3.extent(_data, function(d){return d.rall})
+
+      var yearDescExtent = [d3.min([rExtent[0], rallExtent[0]]), d3.max([rExtent[1], rallExtent[1]])];
       yearData = d3.nest()
         .key(function(d) {return d.year})
         .sortKeys(d3.ascending)
         .rollup(function(leaves) {
-          var teamR = leaves.map(function(d) {return d.r});
-          var teamRall = leaves.map(function(d) {return d.rall});
+          var teamR = leaves.map(function(d) {return d.r/d.game});
+          var teamRall = leaves.map(function(d) {return d.rall/d.game})
           return {
             teamNum:leaves.length,
             min:{r:d3.min(teamR), rall:d3.min(teamRall)},
             max:{r:d3.max(teamR), rall:d3.max(teamRall)},
             median : {r:d3.median(teamR), rall:d3.median(teamRall)},
-            mean:d3.mean(teamR),
+            mean: {r:d3.mean(teamR), rall:d3.mean(teamRall)},
             sd:{r:d3.deviation(teamR), rall:d3.deviation(teamRall)}
           };
         })
         .entries(_data);
-
+        
       if (!svg) {
         svg = _selection.selectAll('svg.jg-svg')
           .data([curData])
