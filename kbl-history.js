@@ -32,7 +32,7 @@ d3.kblHistory = function module () {
   var svg, curData, nestedByTeam, nestedByCoach, curMode = modes[0], suppData=[];
   var color = d3.scale.category10();
   var thetaR = d3.scale.linear().range([0, Math.PI*(3/2)]), thetaRall = d3.scale.linear().range([0, Math.PI*(3/2)]);
-  var curYearExtent;
+  var curYearExtent, yearData;
 
   var exports = function (_selection) {
     _selection.each(function(_data) {
@@ -74,6 +74,23 @@ d3.kblHistory = function module () {
       xAxis.scale(x)
       curYearExtent = yearExtent;
 
+      yearData = d3.nest()
+        .key(function(d) {return d.year})
+        .sortKeys(d3.ascending)
+        .rollup(function(leaves) {
+          var teamR = leaves.map(function(d) {return d.r});
+          var teamRall = leaves.map(function(d) {return d.rall});
+          return {
+            teamNum:leaves.length,
+            min:{r:d3.min(teamR), rall:d3.min(teamRall)},
+            max:{r:d3.max(teamR), rall:d3.max(teamRall)},
+            median : {r:d3.median(teamR), rall:d3.median(teamRall)},
+            mean:d3.mean(teamR),
+            sd:{r:d3.deviation(teamR), rall:d3.deviation(teamRall)}
+          };
+        })
+        .entries(_data);
+
       if (!svg) {
         svg = _selection.selectAll('svg.jg-svg')
           .data([curData])
@@ -99,7 +116,6 @@ d3.kblHistory = function module () {
 
     table.call(drawRows)
     var avgData = getAverageData(curData, curYearExtent);
-
     svg.selectAll('.jg-row-avg')
       .data(avgData)
     .enter().append('g')
