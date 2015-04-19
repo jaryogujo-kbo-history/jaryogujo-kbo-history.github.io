@@ -6,17 +6,21 @@ TODO: 시즌용 라인 그래프 -> 팀별 득실점 평균 -> 편차 그리기�
 TODO: 팀별  & 감독별 요약 정보 => 연속 감독 || 팀별 요약 챠트
 
 */
+
+
 d3.kblHistory = function module () {
   var attrs = {
     canvasWidth : 820,
     canvasHeight : 360,
     tableHeight : 360,
+    lineHeight : 80,
     isTeamMode : true,
     blockColExtent : [],
   };//end of attributes
   var modes =  ['team', 'coach'];
-  var margin = {top:60, right : 10, bottom : 10, left : 70}
-  var x = d3.scale.ordinal(), y=d3.scale.ordinal() ;
+  var margin = {top:20, right : 10, bottom : 10, left : 70}
+  var x = d3.scale.ordinal(), //FIXME: time.scale()로 교체?
+    y=d3.scale.ordinal(), yearY=d3.scale.linear().rangeRound([0,attrs.lineHeight-margin.top]);
   var xAxis = d3.svg.axis()
     .tickSize(0)
     .tickFormat(function(d) {
@@ -29,87 +33,132 @@ d3.kblHistory = function module () {
     'HT':'해태','LT':'롯데','SM':'삼미','LG':'LG','DS':'두산','KA':'KIA',
     'BG':'빙그레','HH':'한화','SK':'SK','NS':'넥센','NC':'NC','SB':'쌍방울',
     'CB':'청보','TP':'태평양','HD':'현대'})
-  var svg, curData, nestedByTeam, nestedByCoach, curMode = modes[0], suppData=[];
+  var svg, svgYearLine;
+  var curData, nestedByTeam, nestedByCoach, curMode = modes[0], suppData=[];
+  var width, height;
   var color = d3.scale.category10();
-  var thetaR = d3.scale.linear().range([0, Math.PI*(3/2)]), thetaRall = d3.scale.linear().range([0, Math.PI*(3/2)]);
+  var thetaR = d3.scale.linear().range([0, Math.PI*(3/2)]),
+    thetaRall = d3.scale.linear().range([0, Math.PI*(3/2)]);
+
   var curYearExtent, yearData;
 
   var exports = function (_selection) {
     _selection.each(function(_data) {
       d3.select(this).style('width', attrs.canvasWidth+'px')//.style('height', attrs.canvasHeight+'px')
-      //TODO: add radio buttons to select current mode
-      var menu = d3.select(this).append('div')
-        .attr('class', 'jg-menu')
-
-      var radio = menu.selectAll('.jg-mode')
-          .data(modes)
-        .enter().append('input')
-        .attr('class', 'jg-mode')
-        .attr('type', 'radio')
-        .attr('name', 'jg-mode')
-        .property('value', function(d){return d})
-        .property('checked', function(d,i) {return (i===0 ? true : false)})
-        .on('click', function(d) {
-
-        })
-
-
-      var width = attrs.canvasWidth - margin.left - margin.right;
-      var height =  attrs.canvasHeight - margin.top - margin.bottom;
-      var yearExtent = d3.extent(_data, function(d) {return d.year})
-      var waExtent = d3.extent(_data, function(d) {return d.wa})
-      var normalRExtent = d3.extent(_data, function(d){return d.normal_r})
-      var normalRallExtent = d3.extent(_data, function(d){return d.normal_rall})
-      thetaRall.domain([d3.min([normalRExtent[0], normalRallExtent[0]]), d3.max([normalRExtent[1], normalRallExtent[1]])])
-      thetaR.domain([thetaRall.domain()[1], thetaRall.domain()[0]])
-
-
-      calRanks(_data);
-      calNestedData(_data);
-      curData = (curMode===modes[0] ? nestedByTeam : nestedByCoach);
-      x.rangeRoundBands([0, width])
-        .domain(d3.range(yearExtent[0], yearExtent[1]+1))
-      y.rangeRoundBands([0, height])
-        .domain(curData.map(function(d) {return d.key}))
-      xAxis.scale(x)
-      curYearExtent = yearExtent;
-
-
-      var rExtent = d3.extent(_data, function(d){return d.r});
-      var rallExtent = d3.extent(_data, function(d){return d.rall})
-
-      var yearDescExtent = [d3.min([rExtent[0], rallExtent[0]]), d3.max([rExtent[1], rallExtent[1]])];
-      yearData = d3.nest()
-        .key(function(d) {return d.year})
-        .sortKeys(d3.ascending)
-        .rollup(function(leaves) {
-          var teamR = leaves.map(function(d) {return d.r/d.game});
-          var teamRall = leaves.map(function(d) {return d.rall/d.game})
-          return {
-            teamNum:leaves.length,
-            min:{r:d3.min(teamR), rall:d3.min(teamRall)},
-            max:{r:d3.max(teamR), rall:d3.max(teamRall)},
-            median : {r:d3.median(teamR), rall:d3.median(teamRall)},
-            mean: {r:d3.mean(teamR), rall:d3.mean(teamRall)},
-            sd:{r:d3.deviation(teamR), rall:d3.deviation(teamRall)}
-          };
-        })
-        .entries(_data);
-        
+      width = attrs.canvasWidth - margin.left - margin.right;
+      height =  attrs.canvasHeight - margin.top - margin.bottom;
+      dataInit(_data);
       if (!svg) {
-        svg = _selection.selectAll('svg.jg-svg')
+        var yearStatDiv = d3.select(this).append('div')
+          .attr('class', 'jg-div-year-stat')
+        svgYearLine = yearStatDiv.selectAll('jg-svg-year-stat')
+          .data([yearData])
+          .enter().append('svg')
+          .attr('class','jg-svg')
+          .attr('width', width + margin.left + margin.right)
+          .attr('height', attrs.lineHeight)
+
+        var tableDiv = d3.select(this).append('div')
+          .attr('class', 'jg-div-table')
+        svg = tableDiv.selectAll('svg.jg-svg')
           .data([curData])
         .enter().append('svg')
         .attr('class','jg-svg')
         .attr('width', width + margin.left + margin.right)
         .attr('height', attrs.canvasHeight)
       }
-
-      svg.call(svgInit)
+      svgYearLine.call(yearStatInit)
+      svg.call(tableInit)
     }); //end of each
   } // end of exports
 
-  function svgInit(svg) {
+  function dataInit(_data) {
+    var yearExtent = d3.extent(_data, function(d) {return d.year})
+    var waExtent = d3.extent(_data, function(d) {return d.wa})
+    var normalRExtent = d3.extent(_data, function(d){return d.normal_r})
+    var normalRallExtent = d3.extent(_data, function(d){return d.normal_rall})
+    thetaRall.domain([d3.min([normalRExtent[0], normalRallExtent[0]]), d3.max([normalRExtent[1], normalRallExtent[1]])])
+    thetaR.domain([thetaRall.domain()[1], thetaRall.domain()[0]])
+
+    calRanks(_data);
+    calNestedData(_data);
+    curData = (curMode===modes[0] ? nestedByTeam : nestedByCoach);
+    x.rangeRoundBands([0, width])
+      .domain(d3.range(yearExtent[0], yearExtent[1]+1))
+    y.rangeRoundBands([0, height])
+      .domain(curData.map(function(d) {return d.key}))
+    xAxis.scale(x)
+    curYearExtent = yearExtent;
+
+    var rExtent = d3.extent(_data, function(d){return d.r});
+    var rallExtent = d3.extent(_data, function(d){return d.rall})
+    var yearDescExtent = [d3.min([rExtent[0], rallExtent[0]]), d3.max([rExtent[1], rallExtent[1]])];
+    yearData = d3.nest()
+      .key(function(d) {return d.year})
+      .sortKeys(d3.ascending)
+      .rollup(function(leaves) {
+        var teamR = leaves.map(function(d) {
+          var rPerGame = d.r/d.game;
+          d.r_per_game = rPerGame;
+          return rPerGame
+        });
+        var teamRall = leaves.map(function(d) {
+          var rallPerGame = d.rall/d.game;
+          d.rall_per_game = rallPerGame;
+          return rallPerGame
+        })
+        return {
+          teams:leaves,
+          min:{r:d3.min(teamR), rall:d3.min(teamRall)},
+          max:{r:d3.max(teamR), rall:d3.max(teamRall)},
+          median : {r:d3.median(teamR), rall:d3.median(teamRall)},
+          mean: {r:d3.mean(teamR), rall:d3.mean(teamRall)},
+          sd:{r:d3.deviation(teamR), rall:d3.deviation(teamRall)}
+        };
+      })
+      .entries(_data);
+      var rAvgExtent = [d3.min(yearData, function(d){return d3.min([d.values.min.r, d.values.min.rall])}),
+      d3.max(yearData, function(d){return d3.max([d.values.max.r, d.values.max.rall])})];
+      yearY.domain([2.5, 7.5]); //[2.761904761904762, 7.175]
+  }
+
+  function yearStatInit(svg) {
+    var g = svg.append('g')
+      .attr('class', 'jg-year-stat')
+      .attr('transform', d3.svg.transform().translate([margin.left, margin.top]));
+
+    var col = g.selectAll('g.jg-year-stat-col')
+        .data(function(d) { return d})
+      .enter().append('g')
+      .attr('class', 'jg-year-stat-col')
+      .attr('transform', d3.svg.transform().translate(function(d) {
+        return [x(d.key), 0]
+      }));
+
+    col.call(drawYearStatcol)
+    return svg;
+  }
+
+  function drawYearStatcol(selection) {
+    //var line //http://bl.ocks.org/mbostock/3894205
+    //TODO: 유사 득점과 실점의 순위를 연결하는 scatter-plot을 그린다.
+    // 득점 순위
+    var radius = 2;
+    var pointFunc = function(className, propertyName, xRatio) {
+      return selection.selectAll('.'+className)
+            .data(function(d){return d.values.teams.map(function(d){return {team:d.final_team_code, val:d[propertyName]}})})
+          .enter().append('circle')
+          .attr('class', className)
+          .attr('cx', x.rangeBand()*xRatio)
+          .attr('cy', function(d){return yearY(d.val)})
+          .attr('r', radius);
+    }
+    var rPoint = pointFunc('jg-year-stat-r-point', 'r_per_game', .35)
+    var rallPoint = pointFunc('jg-year-stat-rall-point', 'rall_per_game', .65)
+
+  }
+
+  function tableInit(svg) {
     svg.append("g")
     .attr("class", "x axis")
     .attr("transform", d3.svg.transform().translate([margin.left, margin.top]))
@@ -579,6 +628,24 @@ d3.kblHistory = function module () {
     linkPoint.exit().remove();
   }// end of drawDiagonals
 
+  function drawRadioButton(selection) {
+    var menu = selection.append('div')//d3.select(this).append('div')
+      .attr('class', 'jg-menu')
+
+    var radio = menu.selectAll('.jg-mode')
+        .data(modes)
+      .enter().append('input')
+      .attr('class', 'jg-mode')
+      .attr('type', 'radio')
+      .attr('name', 'jg-mode')
+      .property('value', function(d){return d})
+      .property('checked', function(d,i) {return (i===0 ? true : false)})
+      .on('click', function(d) {
+
+      })
+    return selection;
+  }
+
   function nestFunc(key1, key2 ) {
     return d3.nest()
       .key(function(d) {return d[key1]})
@@ -628,3 +695,50 @@ d3.kblHistory = function module () {
 
   return exports;
 }
+
+/*
+d3.kblHistory.yearLine = function module() {
+
+  var attrs = {
+    canvasWidth : 820,
+    canvasHeight : 120,
+    extent : [1988, 2014],
+    margin : {top:60, right : 10, bottom : 10, left : 70}
+  };
+
+  var svg;
+  var width, height;
+  var yearX;
+
+  var exports = function(_selection) {
+    _selection.forEach(function(_data) {
+      width = attrs.
+    });
+  }
+
+  function svgInit(svg) {
+    svg = _selection.selectAll('.jg-year-line-svg')
+      .data([curData])
+    .enter().append('svg')
+    .attr('class','jg-year-line-svg')
+    .attr('width', width + margin.left + margin.right)
+    .attr('height', attrs.canvasHeight)
+  }
+
+  function createAccessorFunc(_attr) {
+    function accesor(val) {
+      if(!arguments.length) return attrs[attr];
+      attrs[_attr] = val;
+      return exports;
+    }
+    return accesor;
+  }
+
+  for (var attr in attrs) {
+    if(!exports[attr] && attrs.hasOwnProperty(attr) ) {
+      exports[attr] = createAccessorFunc(attr);
+    }
+  }
+  return exports;
+}
+*/

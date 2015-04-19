@@ -103,15 +103,17 @@ circle.jg-link {
   stroke: #22cb00
 }
 
-.jg-rank-arc {
+.jg-rank-arc, .jg-year-stat-rall-point, .jg-year-stat-r-point {
   opacity : .75;
 }
 
-.jg-rank-arc.jg-rank-rall {
+
+
+.jg-rank-arc.jg-rank-rall, .jg-year-stat-rall-point {
   fill: #f6b900;
 }
 
-.jg-rank-arc.jg-rank-r {
+.jg-rank-arc.jg-rank-r, .jg-year-stat-r-point {
   fill: #1698d8;
 }
 
