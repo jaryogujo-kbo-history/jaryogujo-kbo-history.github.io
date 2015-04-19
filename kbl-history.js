@@ -13,14 +13,14 @@ d3.kblHistory = function module () {
     canvasWidth : 820,
     canvasHeight : 360,
     tableHeight : 360,
-    lineHeight : 80,
+    yearStatHeight : 60,
     isTeamMode : true,
     blockColExtent : [],
   };//end of attributes
   var modes =  ['team', 'coach'];
   var margin = {top:20, right : 10, bottom : 10, left : 70}
   var x = d3.scale.ordinal(), //FIXME: time.scale()로 교체?
-    y=d3.scale.ordinal(), yearY=d3.scale.linear().rangeRound([0,attrs.lineHeight-margin.top]);
+    y=d3.scale.ordinal(), yearY=d3.scale.linear().rangeRound([0,attrs.yearStatHeight-margin.top]);
   var xAxis = d3.svg.axis()
     .tickSize(0)
     .tickFormat(function(d) {
@@ -33,14 +33,14 @@ d3.kblHistory = function module () {
     'HT':'해태','LT':'롯데','SM':'삼미','LG':'LG','DS':'두산','KA':'KIA',
     'BG':'빙그레','HH':'한화','SK':'SK','NS':'넥센','NC':'NC','SB':'쌍방울',
     'CB':'청보','TP':'태평양','HD':'현대'})
-  var svg, svgYearLine;
+  var svg, svgYearStat;
   var curData, nestedByTeam, nestedByCoach, curMode = modes[0], suppData=[];
   var width, height;
   var color = d3.scale.category10();
   var thetaR = d3.scale.linear().range([0, Math.PI*(3/2)]),
     thetaRall = d3.scale.linear().range([0, Math.PI*(3/2)]);
 
-  var curYearExtent, yearData;
+  var yearStatBrush, curYearExtent, yearData;
 
   var exports = function (_selection) {
     _selection.each(function(_data) {
@@ -51,12 +51,12 @@ d3.kblHistory = function module () {
       if (!svg) {
         var yearStatDiv = d3.select(this).append('div')
           .attr('class', 'jg-div-year-stat')
-        svgYearLine = yearStatDiv.selectAll('jg-svg-year-stat')
+        svgYearStat = yearStatDiv.selectAll('jg-svg-year-stat')
           .data([yearData])
           .enter().append('svg')
           .attr('class','jg-svg')
           .attr('width', width + margin.left + margin.right)
-          .attr('height', attrs.lineHeight)
+          .attr('height', attrs.yearStatHeight)
 
         var tableDiv = d3.select(this).append('div')
           .attr('class', 'jg-div-table')
@@ -67,7 +67,7 @@ d3.kblHistory = function module () {
         .attr('width', width + margin.left + margin.right)
         .attr('height', attrs.canvasHeight)
       }
-      svgYearLine.call(yearStatInit)
+      svgYearStat.call(yearStatInit)
       svg.call(tableInit)
     }); //end of each
   } // end of exports
@@ -119,13 +119,13 @@ d3.kblHistory = function module () {
       .entries(_data);
       var rAvgExtent = [d3.min(yearData, function(d){return d3.min([d.values.min.r, d.values.min.rall])}),
       d3.max(yearData, function(d){return d3.max([d.values.max.r, d.values.max.rall])})];
-      yearY.domain([2.5, 7.5]); //[2.761904761904762, 7.175]
+      yearY.domain([2.75, 7.25]); //[2.761904761904762, 7.175]
   }
 
   function yearStatInit(svg) {
     var g = svg.append('g')
       .attr('class', 'jg-year-stat')
-      .attr('transform', d3.svg.transform().translate([margin.left, margin.top]));
+      .attr('transform', d3.svg.transform().translate([margin.left, margin.top/2]));
 
     var col = g.selectAll('g.jg-year-stat-col')
         .data(function(d) { return d})
@@ -136,6 +136,7 @@ d3.kblHistory = function module () {
       }));
 
     col.call(drawYearStatcol)
+    g.call(drawBrushYearStat)
     return svg;
   }
 
@@ -155,7 +156,84 @@ d3.kblHistory = function module () {
     }
     var rPoint = pointFunc('jg-year-stat-r-point', 'r_per_game', .35)
     var rallPoint = pointFunc('jg-year-stat-rall-point', 'rall_per_game', .65)
+    return selection;
+  }
 
+  function drawBrushYearStat(selection) {
+    yearStatBrush =  d3.svg.brush()
+      .x(x)
+      .extent(x.domain().map(function(d){return x(d)}))
+      //.on("brushstart", brushstart)
+      .on('brush', brushed)
+      /*
+      .on("brushstart", brushstart)
+      .on("brush", brushmove)
+      .on("brushend", brushend)
+      */
+
+    function brushed() {
+      var extent0 = yearStatBrush.extent(),
+          extent1;
+
+      var roundedPos = function(pos) {
+        var minDist = Number.POSITIVE_INFINITY, minIndex = -1;
+        x.range().forEach(function(d,i){
+          var dist = Math.abs(d-pos) ;
+          if (dist< minDist) {
+            minDist = dist;
+            minIndex = i;
+          }
+        })
+        return x.range()[minIndex];
+      }
+
+      // if dragging, preserve the width of the extent
+      if (d3.event.mode === "move") {
+        var d0 = roundedPos(extent0[0]) //x.range()[minIndex],//가장 가까운 위치 찾기d3.time.day.round(extent0[0]),
+            d1 = d0+Math.ceil((extent0[1] - extent0[0])/x.rangeBand()) * x.rangeBand();
+        extent1 = [d0, d1];
+      }
+
+      // otherwise, if resizing, round both dates
+
+      else {
+        extent1 = extent0.map(roundedPos);
+
+        // if empty when rounded, use floor & ceil instead
+
+        if (extent1[0] >= extent1[1]) {
+          //extent1[0] = d3.time.day.floor(extent0[0]);
+          extent1[1] += x.rangeBand()//d3.time.day.ceil(extent0[1]);
+        }
+
+      }
+
+
+      d3.select(this).call(yearStatBrush.extent(extent1));
+    }
+    /*
+    function brushstart() {
+      selection.classed("selecting", true);
+    }
+
+    function brushmove() {
+      var extent0 = d3.event.target.extent();
+
+      selection.selectAll('g.jg-year-stat-col')
+        .classed("selected", function(d) { return s[0] <= (d = x(d.key)) && d <= s[1]; });
+    }
+
+    function brushend() {
+      selection.classed("selecting", !d3.event.target.empty());
+    }
+    */
+
+    selection.append("g")
+      .attr("class", "jg-year-stat-brush")
+      .call(yearStatBrush)
+    .selectAll("rect")
+      .attr("height", attrs.yearStatHeight);
+    return selection;
   }
 
   function tableInit(svg) {
