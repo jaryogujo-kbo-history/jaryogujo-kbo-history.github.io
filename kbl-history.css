@@ -109,11 +109,11 @@ circle.jg-link {
 
 
 
-.jg-rank-arc.jg-rank-rall, .jg-year-stat-rall-point {
+.jg-rank-arc.jg-rall, .jg-year-stat-rall-point {
   fill: #f6b900;
 }
 
-.jg-rank-arc.jg-rank-r, .jg-year-stat-r-point {
+.jg-rank-arc.jg-r, .jg-year-stat-r-point {
   fill: #1698d8;
 }
 
