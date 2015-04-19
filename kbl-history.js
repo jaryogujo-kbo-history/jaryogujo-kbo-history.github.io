@@ -1,8 +1,8 @@
 /*
 TODO: 플레이오프 & 우승 표시
 [x] TODO: 순위 -> parameter 사용
-TODO: 팀별 평균 계산 <- 시간 변화에 따라 변동
-TODO: 시즌용 라인 그래프 -> 팀별 득실점 평균 -> 편차 그리기기
+[x] TODO: 팀별 평균 계산 <- 시간 변화에 따라 변동
+[x] TODO: 시즌용 라인 그래프 -> 팀별 득실점 평균 -> 편차 그리기기
 TODO: 팀별  & 감독별 요약 정보 => 연속 감독 || 팀별 요약 챠트
 
 */
@@ -196,7 +196,6 @@ d3.kblHistory = function module () {
       if (curYearExtent[0] !== domain[0] || curYearExtent[1] !== domain[1]) {
         curYearExtent = domain
         var avgData = getAverageData(curData, curYearExtent);
-        console.log(avgData);
         svg.call(drawAvgRows, avgData);
       }
       d3.select(this).call(yearStatBrush.extent(extent1));
@@ -385,11 +384,11 @@ d3.kblHistory = function module () {
       .rangePoints([x.rangeBand()*.45, x.rangeBand()*.45])*/
 
     var drawHand = function(selection, key, className) {
-      var hand = selection.selectAll('.jg-rank-hand.jg-rank-'+className)
+      var hand = selection.selectAll('.jg-rank-hand.jg-'+className)
           .data(function(d){return [d]})
 
       hand.enter().append('line')
-        .attr('class','jg-rank-hand jg-rank-'+className)
+        .attr('class','jg-rank-hand jg-'+className)
 
       hand.attr('x1', function() {
           return 0
@@ -448,7 +447,7 @@ d3.kblHistory = function module () {
         .startAngle(thetaR.range()[0])
         .endAngle(thetaR.range()[1]);
       selection.append('path')
-        .attr('class', 'jg-rank-arc jg-rank-back')
+        .attr('class', 'jg-rank-arc jg-back')
         .attr('transform', d3.svg.transform().translate(function(){
             return [x.rangeBand()*.5, y.rangeBand()*.5]
           }))
@@ -478,15 +477,19 @@ d3.kblHistory = function module () {
       .call(drawBackArc);
 
     clock.each(function(d,i) {
-      if (d.normal_rall == d.normal_r) {
-        d3.select(this).call(drawHand, 'normal_r', 'dup')
-        d3.select(this).selectAll('.jg-rank-r').remove();
-        d3.select(this).selectAll('.jg-rank-rall').remove();
+      var thisSelection = d3.select(this);
+      if (d.normal_rall == d.normal_r ){
+        if (d.normal_r !== 0) {
+          thisSelection.call(drawHand, 'normal_r', 'dup')
+        }
+        thisSelection.selectAll('.jg-rank-arc.jg-rank').remove();
+        thisSelection.selectAll('.jg-rank-hand.jg-r').remove();
+        thisSelection.selectAll('.jg-rank-hand.jg-rall').remove();
       } else {
-        d3.select(this).call(drawArc)
-        d3.select(this).selectAll('.jg-rank-dup').remove(); //FIXME: 두개로 나눠지도로 수정.
-        d3.select(this).call(drawHand, 'normal_rall', 'rall')
-        d3.select(this).call(drawHand, 'normal_r', 'r')
+        thisSelection.call(drawArc)
+        thisSelection.selectAll('.jg-rank-hand.jg-dup').remove(); //FIXME: 두개로 나눠지도로 수정.
+        thisSelection.call(drawHand, 'normal_rall', 'rall')
+        thisSelection.call(drawHand, 'normal_r', 'r')
       }
     })
   }

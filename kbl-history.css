@@ -87,19 +87,15 @@ circle.jg-link {
   /*opacity : .33;*/
 }
 
-.jg-rank-hand.jg-rank-wa, .jg-rank-line .jg-rank-wa {
-  stroke: #ff2700; /* '#ff2700', '#f6b900', '#1698d8' */
-}
-
-.jg-rank-hand.jg-rank-r, .jg-rank-line .jg-rank-r{
+.jg-rank-hand.jg-r, .jg-rank-line .jg-rank-r{
   stroke: #1698d8; /* '#ff2700', '#f6b900', '#1698d8' */
 }
 
-.jg-rank-hand.jg-rank-rall, .jg-rank-line .jg-rank-rall {
+.jg-rank-hand.jg-rall, .jg-rank-line .jg-rank-rall {
   stroke: #f6b900; /* '#ff2700', '#f6b900', '#1698d8' */
 }
 
-.jg-rank-hand.jg-rank-dup {
+.jg-rank-hand.jg-dup {
   stroke: #22cb00
 }
 
@@ -117,14 +113,14 @@ circle.jg-link {
   fill: #1698d8;
 }
 
-g.jg-row-avg .jg-rank-back {
+g.jg-row-avg .jg-back {
   fill : #e8e9e8;
 }
-g.jg-col:nth-child(odd) .jg-rank-back{
+g.jg-col:nth-child(odd) .jg-back{
   fill : #aaa;
 }
 
-g.jg-col:nth-child(even) .jg-rank-back{
+g.jg-col:nth-child(even) .jg-back{
   fill : #e8e9e8;
 }
 
