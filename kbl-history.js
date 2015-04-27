@@ -3,6 +3,7 @@ TODO: 플레이오프 & 우승 표시
 [x] TODO: 순위 -> parameter 사용
 [x] TODO: 팀별 평균 계산 <- 시간 변화에 따라 변동
 [x] TODO: 시즌용 라인 그래프 -> 팀별 득실점 평균 -> 편차 그리기기
+[] TODO: 하단 추가용 div 추가후 svg 별도 관리
 TODO: 팀별  & 감독별 요약 정보 => 연속 감독 || 팀별 요약 챠트
 
 */
@@ -21,19 +22,12 @@ d3.kblHistory = function module () {
   var margin = {top:20, right : 10, bottom : 10, left : 70}
   var x = d3.scale.ordinal(), //FIXME: time.scale()로 교체?
     y=d3.scale.ordinal(), yearY=d3.scale.linear().rangeRound([0,attrs.yearStatHeight-margin.top]);
-  var xAxis = d3.svg.axis()
-    .tickSize(0)
-    .tickFormat(function(d) {
-        return d3.format('02d')(d%100) + "'"
-        //d3.format('d'))
-      })
-    .orient("top")
   var wa = d3.scale.linear();
   var teamMap = d3.map({'OB':'OB','SS':'삼성','MB':'MBC',
     'HT':'해태','LT':'롯데','SM':'삼미','LG':'LG','DS':'두산','KA':'KIA',
     'BG':'빙그레','HH':'한화','SK':'SK','NS':'넥센','NC':'NC','SB':'쌍방울',
     'CB':'청보','TP':'태평양','HD':'현대'})
-  var svg, svgYearStat;
+  var svg, svgYearStat, svgStack;
   var curData, nestedByTeam, nestedByCoach, curMode = modes[0], suppData=[];
   var width, height;
   var color = d3.scale.category10();
@@ -51,12 +45,19 @@ d3.kblHistory = function module () {
       if (!svg) {
         var yearStatDiv = d3.select(this).append('div')
           .attr('class', 'jg-div-year-stat')
+          .attr('class', 'jg-year-stat')
+          .attr('transform', d3.svg.transform().translate([margin.left, margin.top/2]));
+
         svgYearStat = yearStatDiv.selectAll('jg-svg-year-stat')
           .data([yearData])
           .enter().append('svg')
-          .attr('class','jg-svg')
+          .attr('class','jg-svg-year-stat')
           .attr('width', width + margin.left + margin.right)
           .attr('height', attrs.yearStatHeight)
+          .append('g')
+          .attr('class', 'jg-year-stat')
+          .attr('transform', d3.svg.transform().translate([margin.left,  margin.top/2])); //0
+
 
         var tableDiv = d3.select(this).append('div')
           .attr('class', 'jg-div-table')
@@ -66,8 +67,20 @@ d3.kblHistory = function module () {
         .attr('class','jg-svg')
         .attr('width', width + margin.left + margin.right)
         .attr('height', attrs.canvasHeight)
+
+        var stackDiv = d3.select(this).append('div')
+          .attr('class', 'jg-div-stack')
+
+        svgStack = stackDiv.append('svg')
+          .attr('class','jg-svg-stack')
+          .attr('width', width + margin.left + margin.right)
+          .attr('height', y.rangeBand()*3)
+          .append('g')
+          .attr('class', 'jg-stack')
+          .attr('transform', d3.svg.transform().translate([0, margin.top/2]));
+
       }
-      svgYearStat.call(yearStatInit)
+      svgYearStat.call(svgYearStatInit)
       svg.call(tableInit)
     }); //end of each
   } // end of exports
@@ -87,7 +100,6 @@ d3.kblHistory = function module () {
       .domain(d3.range(yearExtent[0], yearExtent[1]+1))
     y.rangeRoundBands([0, height])
       .domain(curData.map(function(d) {return d.key}))
-    xAxis.scale(x)
     var rExtent = d3.extent(_data, function(d){return d.r});
     var rallExtent = d3.extent(_data, function(d){return d.rall})
     var yearDescExtent = [d3.min([rExtent[0], rallExtent[0]]), d3.max([rExtent[1], rallExtent[1]])];
@@ -120,12 +132,8 @@ d3.kblHistory = function module () {
       yearY.domain([2.75, 7.25]); //[2.761904761904762, 7.175]
   }
 
-  function yearStatInit(svg) {
-    var g = svg.append('g')
-      .attr('class', 'jg-year-stat')
-      .attr('transform', d3.svg.transform().translate([margin.left, margin.top/2]));
-
-    var col = g.selectAll('g.jg-year-stat-col')
+  function svgYearStatInit(svg) {
+    var col = svg.selectAll('g.jg-year-stat-col')
         .data(function(d) { return d})
       .enter().append('g')
       .attr('class', 'jg-year-stat-col')
@@ -134,7 +142,7 @@ d3.kblHistory = function module () {
       }));
 
     col.call(drawYearStatcol)
-    g.call(drawBrushYearStat)
+    svg.call(drawBrushYearStat)
     return svg;
   }
 
@@ -219,8 +227,17 @@ d3.kblHistory = function module () {
   }
 
   function tableInit(svg) {
+    var xAxis = d3.svg.axis()
+      .scale(x)
+      .tickSize(0)
+      .tickFormat(function(d) {
+          return d3.format('02d')(d%100) + "'"
+          //d3.format('d'))
+        })
+      .orient("top")
+
     svg.append("g")
-    .attr("class", "x axis")
+    .attr("class", "jg-x jg-axis")
     .attr("transform", d3.svg.transform().translate([margin.left, margin.top]))
     .call(xAxis);
 
@@ -575,16 +592,12 @@ d3.kblHistory = function module () {
       return !(d3.select(this).classed('jg-mouseover'))
     }).classed({'jg-hidden':true})
 
-    //var linkData = [];
-    //overed.call(getLinkData, targetName, linkData);
-    //drawDiagonals([{key:targetName, values:linkData}]);
-
-    var suppRow = svg.selectAll('.jg-supp.jg-row')
+  var suppRow = svgStack.selectAll('.jg-supp.jg-row')
       .data([{key:targetName, values:overed.data()}], function(d){ return d.key})
 
     suppRow.enter().append('g')
       .classed({'jg-supp':true, 'jg-row':true})
-      .attr('transform', d3.svg.transform().translate(function(d) { return [0, attrs.tableHeight] }))
+      .attr('transform', d3.svg.transform().translate(function(d) { return [0, 0] }))//attrs.tableHeight
 
     suppRow.exit().remove();
     suppRow.call(drawCols, true)
@@ -596,23 +609,25 @@ d3.kblHistory = function module () {
     if (d3.select(this).classed('jg-clicked')) {
       svg.selectAll('.jg-col').classed({'jg-mouseover':false})
       svg.selectAll('.jg-col').classed({'jg-clicked':false})
-      attrs.canvasHeight -= y.rangeBand();
-      svg.attr('height', attrs.canvasHeight);
+      //attrs.canvasHeight -= y.rangeBand();
+      //svg.attr('height', attrs.canvasHeight);
     } else {
       var thisCoach =d[0].first_coach_name
       svg.selectAll('.jg-col').classed({'jg-clicked':false})
       var clicked = svg.selectAll('.jg-col.jg-mouseover')//.filter(function(d) {return d[0].first_coach_name === thisCoach})
         .classed({'jg-clicked':true, 'jg-mouseover':false})
 
-      attrs.canvasHeight += y.rangeBand();
-      svg.attr('height', attrs.canvasHeight);
-      svg.selectAll('.jg-supp.jg-row')
+      var parentSvg = d3.select(svgStack.node().parentNode)
+      var curHeight = parentSvg.attr('height')
+      curHeight += y.rangeBand();
+      parentSvg.attr('height', attrs.canvasHeight);
+      svgStack.selectAll('.jg-supp.jg-row')
         .classed({'jg-supp':false, 'jg-supp-fixed':true})
-      var size = svg.selectAll('.jg-supp-fixed').size();
-      svg.selectAll('.jg-supp-fixed')
+      var size = svgStack.selectAll('.jg-supp-fixed').size();
+      svgStack.selectAll('.jg-supp-fixed')
         .transition().duration(400)
         .attr("transform", d3.svg.transform().translate(function(d,i) {
-          var dy = attrs.tableHeight+ (y.rangeBand())+ ((size-i)*y.rangeBand());
+          var dy =  (y.rangeBand())+ ((size-i)*y.rangeBand());
           return [0,dy]
         }))
 
@@ -751,50 +766,3 @@ d3.kblHistory = function module () {
 
   return exports;
 }
-
-/*
-d3.kblHistory.yearLine = function module() {
-
-  var attrs = {
-    canvasWidth : 820,
-    canvasHeight : 120,
-    extent : [1988, 2014],
-    margin : {top:60, right : 10, bottom : 10, left : 70}
-  };
-
-  var svg;
-  var width, height;
-  var yearX;
-
-  var exports = function(_selection) {
-    _selection.forEach(function(_data) {
-      width = attrs.
-    });
-  }
-
-  function svgInit(svg) {
-    svg = _selection.selectAll('.jg-year-line-svg')
-      .data([curData])
-    .enter().append('svg')
-    .attr('class','jg-year-line-svg')
-    .attr('width', width + margin.left + margin.right)
-    .attr('height', attrs.canvasHeight)
-  }
-
-  function createAccessorFunc(_attr) {
-    function accesor(val) {
-      if(!arguments.length) return attrs[attr];
-      attrs[_attr] = val;
-      return exports;
-    }
-    return accesor;
-  }
-
-  for (var attr in attrs) {
-    if(!exports[attr] && attrs.hasOwnProperty(attr) ) {
-      exports[attr] = createAccessorFunc(attr);
-    }
-  }
-  return exports;
-}
-*/

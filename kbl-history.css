@@ -15,7 +15,7 @@ div.jg-chart {
   margin: 0 auto;
 }
 
-.jg-label, .axis text {
+.jg-label, .jg-axis text {
   fill : #777;
 }
 
@@ -23,11 +23,11 @@ div.jg-chart {
   cursor : pointer;
 }
 
-.axis path {
+.jg-axis path {
   display: none;
 }
 
-.axis line {
+.jg-axis line {
   shape-rendering: crispEdges;
   stroke: #000;
 }
