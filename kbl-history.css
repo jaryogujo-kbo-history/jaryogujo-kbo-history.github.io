@@ -90,11 +90,12 @@ circle.jg-link {
   /*opacity : .33;*/
 }
 
-.jg-rank-hand.jg-r, .jg-rank-line .jg-rank-r{
+.jg-rank-hand.jg-r, .jg-rank-line .jg-rank-r, .jg-svg-stack-line.jg-r{
   stroke: #1698d8; /* '#ff2700', '#f6b900', '#1698d8' */
 }
 
-.jg-rank-hand.jg-rall, .jg-rank-line .jg-rank-rall {
+.jg-rank-hand.jg-rall, .jg-rank-line .jg-rank-rall , .jg-svg-stack-line.jg-rall{
+  
   stroke: #f6b900; /* '#ff2700', '#f6b900', '#1698d8' */
 }
 
@@ -108,13 +109,14 @@ circle.jg-link {
 
 
 
-.jg-rank-arc.jg-rall, .jg-year-stat-rall-point {
+.jg-rank-arc.jg-rall, .jg-year-stat-point.jg-rall {
   fill: #f6b900;
 }
 
-.jg-rank-arc.jg-r, .jg-year-stat-r-point {
+.jg-rank-arc.jg-r, .jg-year-stat-point.jg-r {
   fill: #1698d8;
 }
+
 
 g.jg-row-avg .jg-back {
   fill : #e8e9e8;

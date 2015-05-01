@@ -43,9 +43,7 @@ d3.kblHistory = function module () {
           .attr('class','jg-svg-year-stat')
           .attr('width', width + margin.left + margin.right)
           .attr('height', attrs.yearStatHeight)
-          .append('g')
-          .attr('class', 'jg-year-stat')
-          .attr('transform', d3.svg.transform().translate([margin.left,  margin.top/2])); //0
+
 
 
         var tableDiv = d3.select(this).append('div')
@@ -123,7 +121,17 @@ d3.kblHistory = function module () {
   }
 
   function svgYearStatInit(svg) {
-    var col = svg.selectAll('g.jg-year-stat-col')
+    var gLine =
+      svg.append('g')
+        .attr('class', 'jg-year-stat-line-g')
+        .attr('transform', d3.svg.transform().translate([margin.left,  margin.top/2])); //0
+
+    var gPoint = svg.append('g')
+    .attr('class', 'jg-year-stat-point-g')
+    .attr('transform', d3.svg.transform().translate([margin.left,  margin.top/2])); //0
+
+
+    var col = gPoint.selectAll('g.jg-year-stat-col')
         .data(function(d) { return d})
       .enter().append('g')
       .attr('class', 'jg-year-stat-col')
@@ -132,7 +140,7 @@ d3.kblHistory = function module () {
       }));
 
     col.call(drawYearStatcol)
-    svg.call(drawBrushYearStat)
+    gPoint.call(drawBrushYearStat)
     return svg;
   }
 
@@ -152,22 +160,51 @@ d3.kblHistory = function module () {
   }
 
   function drawYearStatcol(selection) {
-    //var line //http://bl.ocks.org/mbostock/3894205
-    //TODO: 유사 득점과 실점의 순위를 연결하는 scatter-plot을 그린다.
-    // 득점 순위
     var radius = 2;
     var pointFunc = function(className, propertyName, xRatio) {
-      return selection.selectAll('.'+className)
+      return selection.selectAll('.jg-year-stat-point.'+className)
             .data(function(d){return d.values.teams.map(function(d){return {team:d.final_team_code, val:d[propertyName]}})})
           .enter().append('circle')
-          .attr('class', className)
+          .attr('class', 'jg-year-stat-point '+className)
           .attr('cx', x.rangeBand()*xRatio)
           .attr('cy', function(d){return yearY(d.val)})
           .attr('r', radius);
     }
-    var rPoint = pointFunc('jg-year-stat-r-point', 'r_per_game', .35)
-    var rallPoint = pointFunc('jg-year-stat-rall-point', 'rall_per_game', .65)
+    var rPoint = pointFunc('jg-r', 'r_per_game', .35)
+    var rallPoint = pointFunc('jg-rall', 'rall_per_game', .65)
+
     return selection;
+  }
+
+  function drawLineYearly(selection, selectedTeam) {
+    var flatData = [];
+    selectedTeam.values.forEach(function(d) {
+      flatData = flatData.concat(d.values);
+    })
+    flatData = d3.merge(flatData);
+    flatData.sort(function(a,b){return a.year-b.year})
+    
+    var lineFunc = function(data, className, propertyName, xRatio)  {
+      var line = d3.svg.line()
+        .x(function(d) {return x(d.x)+x.rangeBand()*xRatio})
+        .y(function(d) {return yearY(d.y)})
+
+      var chart = selection.select('.jg-year-stat-line-g')
+        .selectAll('.jg-svg-stack-line.'+className)
+          .data([data.map(function(d){return {x:d.year, y:d[propertyName]}})], function(){return selectedTeam.key})
+
+      chart.enter().append('path')
+        .attr('class', 'jg-svg-stack-line '+className)
+
+      chart.attr('d', line)
+        .style('fill', 'none')
+
+      chart.exit().remove();
+      return chart;
+    }
+    lineFunc(flatData, 'jg-r', 'r_per_game', .35)
+    lineFunc(flatData, 'jg-rall', 'rall_per_game', .65)
+
   }
 
   function drawBrushYearStat(selection) {
@@ -294,20 +331,12 @@ d3.kblHistory = function module () {
       .attr('dy', '.35em')
       .text(function(d) {return (!isSupp ? teamMap.get(d.key): d.key)})
       .on('mouseenter', function(d) {
-        svg.select('.jg-table').selectAll('.jg-col.jg-mouseover').classed({'jg-mouseover':false})
-        svg.selectAll('.jg-link').remove();
-        var targets = d.values.map(function(dd) {
-          return dd.key
-        })
-        var linkDataArr = []
-        targets.forEach(function(targetName,i) {
-          var overed = svg.select('.jg-table').selectAll('.jg-col').filter(function(d) {return getTargetNameFromCol(d) === targetName})
-          var linkData = [];
-          overed.call(getLinkData, targetName, linkData);
-          linkDataArr.push({key:targetName, values:linkData})
-        })
-
+        svgYearStat.call(drawLineYearly, d)
         //drawDiagonals(linkDataArr);
+
+      })
+      .on('mouseleaver', function(d) {
+
       })
   }
 
