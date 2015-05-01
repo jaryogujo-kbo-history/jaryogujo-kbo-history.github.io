@@ -23,14 +23,17 @@ div.jg-chart {
   cursor : pointer;
 }
 
-.jg-axis path {
-  display: none;
+.jg-axis path, .jg-axis line{
+  display : none;
 }
 
-.jg-axis line {
+
+.jg-stack .jg-axis line, .jg-stack .jg-axis path{
+  display : inherit;
   shape-rendering: crispEdges;
-  stroke: #000;
+  stroke: #777;
 }
+
 
 .jg-rank-text rect{
   stroke : none;

@@ -1,14 +1,3 @@
-/*
-TODO: 플레이오프 & 우승 표시
-[x] TODO: 순위 -> parameter 사용
-[x] TODO: 팀별 평균 계산 <- 시간 변화에 따라 변동
-[x] TODO: 시즌용 라인 그래프 -> 팀별 득실점 평균 -> 편차 그리기기
-[] TODO: 하단 추가용 div 추가후 svg 별도 관리
-TODO: 팀별  & 감독별 요약 정보 => 연속 감독 || 팀별 요약 챠트
-
-*/
-
-
 d3.kblHistory = function module () {
   var attrs = {
     canvasWidth : 820,
@@ -80,8 +69,9 @@ d3.kblHistory = function module () {
           .attr('transform', d3.svg.transform().translate([0, margin.top/2]));
 
       }
-      svgYearStat.call(svgYearStatInit)
-      svg.call(tableInit)
+      svgYearStat.call(svgYearStatInit);
+      svg.call(tableInit);
+      svgStack.call(svgStackInit);
     }); //end of each
   } // end of exports
 
@@ -144,6 +134,21 @@ d3.kblHistory = function module () {
     col.call(drawYearStatcol)
     svg.call(drawBrushYearStat)
     return svg;
+  }
+
+  function svgStackInit(svg) {
+    var xAxis = d3.svg.axis()
+      .scale(x)
+      .tickSize(0)
+      .tickFormat(function(d) {
+          return d3.format('02d')(d%100) + "'"
+        })
+      .orient("top")
+
+    svg.append("g")
+    .attr("class", "jg-x jg-axis")
+    .attr("transform", d3.svg.transform().translate([margin.left, margin.top]))
+    .call(xAxis);
   }
 
   function drawYearStatcol(selection) {
@@ -348,9 +353,6 @@ d3.kblHistory = function module () {
     //col.call(drawRankLine);
   }
 
-  function drawBars(col) {
-
-  }
 
   function drawRankLine(col) {
     var max_rank = 9;
@@ -597,7 +599,7 @@ d3.kblHistory = function module () {
 
     suppRow.enter().append('g')
       .classed({'jg-supp':true, 'jg-row':true})
-      .attr('transform', d3.svg.transform().translate(function(d) { return [0, 0] }))//attrs.tableHeight
+      .attr('transform', d3.svg.transform().translate(function(d) { return [0, y.rangeBand()] }))//attrs.tableHeight
 
     suppRow.exit().remove();
     suppRow.call(drawCols, true)
@@ -617,10 +619,10 @@ d3.kblHistory = function module () {
       var clicked = svg.selectAll('.jg-col.jg-mouseover')//.filter(function(d) {return d[0].first_coach_name === thisCoach})
         .classed({'jg-clicked':true, 'jg-mouseover':false})
 
-      var parentSvg = d3.select(svgStack.node().parentNode)
+      var parentSvg = d3.select(svgStack.node().parentNode) //FIXME : 중복 감독 추가시 위로 올리기
       var curHeight = parentSvg.attr('height')
       curHeight += y.rangeBand();
-      parentSvg.attr('height', attrs.canvasHeight);
+      parentSvg.attr('height', curHeight);
       svgStack.selectAll('.jg-supp.jg-row')
         .classed({'jg-supp':false, 'jg-supp-fixed':true})
       var size = svgStack.selectAll('.jg-supp-fixed').size();
