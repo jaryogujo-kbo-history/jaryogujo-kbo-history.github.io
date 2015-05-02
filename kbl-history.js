@@ -9,8 +9,11 @@ d3.kblHistory = function module () {
   };//end of attributes
   var modes =  ['team', 'coach'];
   var margin = {top:20, right : 10, bottom : 10, left : 70}
-  var x = d3.scale.ordinal(), //FIXME: time.scale()로 교체?
-    y=d3.scale.ordinal(), yearY=d3.scale.linear().rangeRound([0,attrs.yearStatHeight-margin.top]);
+  var x = d3.scale.ordinal(), y=d3.scale.ordinal(),
+    yearYR=d3.scale.linear().rangeRound([attrs.yearStatHeight-margin.top, 0]),
+    yearYRall = d3.scale.linear().rangeRound([attrs.yearStatHeight-margin.top, 0]),
+    thetaR = d3.scale.linear().range([0, Math.PI*(3/2)]),
+    thetaRall = d3.scale.linear().range([0, Math.PI*(3/2)]);
   var wa = d3.scale.linear();
   var teamMap = d3.map({'OB':'OB','SS':'삼성','MB':'MBC',
     'HT':'해태','LT':'롯데','SM':'삼미','LG':'LG','DS':'두산','KA':'KIA',
@@ -20,9 +23,6 @@ d3.kblHistory = function module () {
   var curData, nestedByTeam, nestedByCoach, curMode = modes[0], suppData=[];
   var width, height;
   var color = d3.scale.category10();
-  var thetaR = d3.scale.linear().range([0, Math.PI*(3/2)]),
-    thetaRall = d3.scale.linear().range([0, Math.PI*(3/2)]);
-
   var yearStatBrush, curYearExtent, yearData;
 
   var exports = function (_selection) {
@@ -79,7 +79,9 @@ d3.kblHistory = function module () {
     var normalRExtent = d3.extent(_data, function(d){return d.normal_r})
     var normalRallExtent = d3.extent(_data, function(d){return d.normal_rall})
     thetaRall.domain([d3.min([normalRExtent[0], normalRallExtent[0]]), d3.max([normalRExtent[1], normalRallExtent[1]])])
-    thetaR.domain([thetaRall.domain()[1], thetaRall.domain()[0]])
+    thetaR.domain([thetaRall.domain()[1], thetaRall.domain()[0]]);
+    yearYR.domain(thetaRall.domain()); //[2.761904761904762, 7.175]
+    yearYRall.domain(thetaR.domain());
 
     calRanks(_data);
     calNestedData(_data);
@@ -117,7 +119,7 @@ d3.kblHistory = function module () {
       .entries(_data);
       var rAvgExtent = [d3.min(yearData, function(d){return d3.min([d.values.min.r, d.values.min.rall])}),
       d3.max(yearData, function(d){return d3.max([d.values.max.r, d.values.max.rall])})];
-      yearY.domain([2.75, 7.25]); //[2.761904761904762, 7.175]
+
   }
 
   function svgYearStatInit(svg) {
@@ -163,15 +165,16 @@ d3.kblHistory = function module () {
     var radius = 2;
     var pointFunc = function(className, propertyName, xRatio) {
       return selection.selectAll('.jg-year-stat-point.'+className)
-            .data(function(d){return d.values.teams.map(function(d){return {team:d.final_team_code, val:d[propertyName]}})})
+            .data(function(d){
+              return d.values.teams.map(function(d){return {team:d.final_team_code, val:d[propertyName]}})})
           .enter().append('circle')
           .attr('class', 'jg-year-stat-point '+className)
           .attr('cx', x.rangeBand()*xRatio)
-          .attr('cy', function(d){return yearY(d.val)})
+          .attr('cy', function(d){return (propertyName === 'normal_r')? yearYR(d.val) : yearYRall(d.val)})
           .attr('r', radius);
     }
-    var rPoint = pointFunc('jg-r', 'r_per_game', .35)
-    var rallPoint = pointFunc('jg-rall', 'rall_per_game', .65)
+    var rPoint = pointFunc('jg-r', 'normal_r', .35)
+    var rallPoint = pointFunc('jg-rall', 'normal_rall', .65)
 
     return selection;
   }
@@ -183,11 +186,11 @@ d3.kblHistory = function module () {
     })
     flatData = d3.merge(flatData);
     flatData.sort(function(a,b){return a.year-b.year})
-    
+
     var lineFunc = function(data, className, propertyName, xRatio)  {
       var line = d3.svg.line()
         .x(function(d) {return x(d.x)+x.rangeBand()*xRatio})
-        .y(function(d) {return yearY(d.y)})
+        .y(function(d) {return (propertyName === 'normal_r')? yearYR(d.y) : yearYRall(d.y)})
 
       var chart = selection.select('.jg-year-stat-line-g')
         .selectAll('.jg-svg-stack-line.'+className)
@@ -202,8 +205,8 @@ d3.kblHistory = function module () {
       chart.exit().remove();
       return chart;
     }
-    lineFunc(flatData, 'jg-r', 'r_per_game', .35)
-    lineFunc(flatData, 'jg-rall', 'rall_per_game', .65)
+    lineFunc(flatData, 'jg-r', 'normal_r', .35)
+    lineFunc(flatData, 'jg-rall', 'normal_rall', .65)
 
   }
 
@@ -268,6 +271,28 @@ d3.kblHistory = function module () {
     return domain;
   }
 
+  function getAverageData(targetData, yearExtent) {
+    return targetData.map(function(d) {
+      var totalR = totalRall = 0;
+      d.values.forEach(function(dd) { //team
+        dd.values.forEach(function(ddd) { //coach
+          ddd.forEach(function(dddd) {
+            if (typeof dddd === 'object' && dddd.hasOwnProperty('normal_r')
+              && dddd.year >=yearExtent[0] && dddd.year < yearExtent[1]) {
+              totalR += dddd.normal_r;
+              totalRall += dddd.normal_rall;
+            }
+          })
+        })
+      })
+
+      var avgR = totalR/(yearExtent[1] - yearExtent[0] );
+      var avgRall = totalRall/(yearExtent[1] - yearExtent[0]);
+      return [{'key':d.key, 'normal_r':avgR, 'normal_rall':avgRall }]
+    })
+  }
+
+
   function tableInit(svg) {
     var xAxis = d3.svg.axis()
       .scale(x)
@@ -294,6 +319,7 @@ d3.kblHistory = function module () {
   }
 
   function drawAvgRows(selection, avgData) {
+    //FIXME : row에 편입시키기
     var row = selection.selectAll('.jg-row-avg')
         .data(avgData)
 
@@ -306,6 +332,7 @@ d3.kblHistory = function module () {
   }
 
   function drawRows(table) {
+
     var row = table.selectAll('g.jg-row')
       .data(function(d) {return d}, function(d) { return d.key}) // => team level
     .enter().append('g')
@@ -314,10 +341,13 @@ d3.kblHistory = function module () {
       d.y = y(d.key);
       return [0, d.y]
     }))
-
+    curYearExtent = turnRangeToExtent(yearStatBrush.extent());
+    //row.call(drawAvg, curYearExtent);
     row.call(drawLabel);
     row.call(drawCols);
   }
+
+
 
   function drawLabel(row, isSupp) {
 
@@ -332,11 +362,35 @@ d3.kblHistory = function module () {
       .text(function(d) {return (!isSupp ? teamMap.get(d.key): d.key)})
       .on('mouseenter', function(d) {
         svgYearStat.call(drawLineYearly, d)
-        //drawDiagonals(linkDataArr);
-
       })
       .on('mouseleaver', function(d) {
+        //TODO:마우스 아웃하면 사라지게???
+      })
+      .on('click', function(d) {
 
+        //해당 row와 avgRow 밑에 있는 것들  선택되게 하기
+        var curIndex =  curData.map(function(d){return d.key}).indexOf(d.key);
+        var underRows = svg.selectAll('.jg-row').filter(function(r,i) {
+          return i > curIndex;
+        })
+        var underRowAvg = svg.selectAll('.jg-row-avg').filter(function(r,i) {
+          return i > curIndex;
+        })
+        var moveDownFunc = function(selection) {
+          selection.each(function(){
+            var pos = d3.transform(d3.select(this).attr('transform')).translate;
+            d3.select(this).attr('transform', d3.svg.transform().translate([pos[0], pos[1]+y.rangeBand()]));
+          })
+
+        }
+        underRows.call(moveDownFunc);
+        underRowAvg.call(moveDownFunc);
+        //현재 위치 밑에 공간 추가(밑에 있는 row들을 다 아래로)
+
+
+        //공간밑에 그려넣기
+          //감독별 라인 그려넣기
+          //감독별 평균 점수 그려넣기
       })
   }
 
@@ -421,6 +475,7 @@ d3.kblHistory = function module () {
 
   function drawRankArc(col, isAvg) {
     isAvg = isAvg || false;
+
     var max_rank = 9;
     var rankCol = d3.scale.linear()
       .domain([1,max_rank])
@@ -542,27 +597,6 @@ d3.kblHistory = function module () {
     })
   }
 
-  function getAverageData(targetData, yearExtent) {
-    return targetData.map(function(d) {
-      var totalR = totalRall = 0;
-      d.values.forEach(function(dd) { //team
-        dd.values.forEach(function(ddd) { //coach
-          ddd.forEach(function(dddd) {
-            if (typeof dddd === 'object' && dddd.hasOwnProperty('normal_r')
-              && dddd.year >=yearExtent[0] && dddd.year < yearExtent[1]) {
-              totalR += dddd.normal_r;
-              totalRall += dddd.normal_rall;
-            }
-          })
-        })
-      })
-
-      var avgR = totalR/(yearExtent[1] - yearExtent[0] );
-      var avgRall = totalRall/(yearExtent[1] - yearExtent[0]);
-      return [{'key':d.key, 'normal_r':avgR, 'normal_rall':avgRall }]
-    })
-
-  }
 
   function calNestedData(_data) {
     nestedByTeam = nestFunc('final_team_code', 'first_coach_name')
