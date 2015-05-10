@@ -95,7 +95,7 @@ circle.jg-link {
 }
 
 .jg-rank-hand.jg-rall, .jg-rank-line .jg-rank-rall , .jg-svg-stack-line.jg-rall{
-  
+
   stroke: #f6b900; /* '#ff2700', '#f6b900', '#1698d8' */
 }
 
@@ -107,14 +107,16 @@ circle.jg-link {
   opacity : .75;
 }
 
-
-
 .jg-rank-arc.jg-rall, .jg-year-stat-point.jg-rall {
   fill: #f6b900;
 }
 
 .jg-rank-arc.jg-r, .jg-year-stat-point.jg-r {
   fill: #1698d8;
+}
+
+.jg-rank-arc.jg-back {
+  fill : #e8e9e8;
 }
 
 
@@ -133,4 +135,9 @@ g.jg-col:nth-child(even) .jg-back{
   fill : #ddd;
   opacity: .5;
   shape-rendering: crispEdges;
+}
+
+.jg-bottom-row .jg-line {
+  stroke:#777;
+  stroke-width:1px;
 }
