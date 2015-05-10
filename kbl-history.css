@@ -141,3 +141,7 @@ g.jg-col:nth-child(even) .jg-back{
   stroke:#777;
   stroke-width:1px;
 }
+
+.jg-bottom-row .jg-coach-name {
+  fill:#777;
+}
