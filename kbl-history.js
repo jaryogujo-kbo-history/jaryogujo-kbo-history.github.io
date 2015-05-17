@@ -44,8 +44,6 @@ d3.kblHistory = function module () {
           .attr('width', width + margin.left + margin.right)
           .attr('height', attrs.yearStatHeight)
 
-
-
         var tableDiv = d3.select(this).append('div')
           .attr('class', 'jg-div-table')
         svg = tableDiv.selectAll('svg.jg-svg')
@@ -54,6 +52,10 @@ d3.kblHistory = function module () {
         .attr('class','jg-svg')
         .attr('width', width + margin.left + margin.right)
         .attr('height', attrs.canvasHeight)
+          .append('g')
+        .attr('class', 'jg-svg-g')
+
+
 
         var stackDiv = d3.select(this).append('div')
           .attr('class', 'jg-div-stack')
@@ -367,19 +369,21 @@ d3.kblHistory = function module () {
         //TODO:마우스 아웃하면 사라지게???
       })
       .on('click', function(d) {
+        //jg-supp jg-row
         addBottomRow(d, this);
       })
   }
 
-  function addBottomRow(d,self) {
+  function addBottomRow(d,self) { //FIXME : 팀용 이냐 감독용이냐에 따라 다른 기준 적용
     var curIndex =  curData.map(function(d){return d.key}).indexOf(d.key);
     // 해당 row avgRow 선택 표시
     var thisRow = d3.select(d3.select(self).node().parentNode);
+    var thisSvg = (thisRow.classed('jg-supp') || thisRow.classed('jg-supp-fixed'))? svgStack:svg;
     var appendH = y.rangeBand()*3
-    var underRows = svg.selectAll('.jg-row').filter(function(r,i) {
+    var underRows = thisSvg.selectAll('.jg-row').filter(function(r,i) {
       return i > curIndex;
     })
-    var underRowAvg = svg.selectAll('.jg-row-avg').filter(function(r,i) {
+    var underRowAvg = thisSvg.selectAll('.jg-row-avg').filter(function(r,i) {
       return i > curIndex;
     })
 
@@ -390,22 +394,22 @@ d3.kblHistory = function module () {
       })
     }
     var shrinkExisting = function() {
-      var selectedRow = svg.selectAll('.jg-row.jg-selected');
+      var selectedRow = thisSvg.selectAll('.jg-row.jg-selected');
       if (selectedRow.size() >0) {
         selectedRow.selectAll('.jg-bottom-row').remove();
         var selectedRowIndex = curData.map(function(d){return d.key}).indexOf(selectedRow.data()[0].key);
-        var selectedUnderRows = svg.selectAll('.jg-row').filter(function(r,i) {
+        var selectedUnderRows = thisSvg.selectAll('.jg-row').filter(function(r,i) {
           return i > selectedRowIndex;
         })
-        var selectedUnderRowAvg = svg.selectAll('.jg-row-avg').filter(function(r,i) {
+        var selectedUnderRowAvg = thisSvg.selectAll('.jg-row-avg').filter(function(r,i) {
           return i > selectedRowIndex;
         })
         // 기존에 다른 게 있으면 줄어들게 하기
         selectedUnderRows.call(moveUpDownFunc, -appendH);
         selectedUnderRowAvg.call(moveUpDownFunc, -appendH);
         selectedRow.classed({'jg-selected':false});
-        svg.selectAll('.jg-row-avg.jg-selected').classed({'jg-selected':false});
-        svg.attr('height', attrs.canvasHeight)
+        thisSvg.selectAll('.jg-row-avg.jg-selected').classed({'jg-selected':false});
+        d3.select(thisSvg.node().parentNode).attr('height', attrs.canvasHeight)
       }
     }
 
@@ -416,7 +420,7 @@ d3.kblHistory = function module () {
       //해당 row와 avgRow 밑에 있는 것들  선택되게 하기
       underRows.call(moveUpDownFunc, appendH);
       underRowAvg.call(moveUpDownFunc, appendH);
-      svg.attr('height', attrs.canvasHeight + appendH)
+      d3.select(thisSvg.node().parentNode).attr('height', attrs.canvasHeight + appendH)
       thisRow.classed({'jg-selected':true}) //thisRowAvg.classed({'jg-selected':true});
         .call(drawBottomRow, d);
     }
@@ -449,7 +453,7 @@ d3.kblHistory = function module () {
         .translate(
           function(d,i){return [x(d.from), y.rangeBand()*.1]}
         ))
-    //TODO : 연도 구간 추가하기 
+    //TODO : 연도 구간 추가하기
     bottomCol.selectAll('.jg-line')
         .data(function(d){return [d,d]})
       .enter().append('line')
