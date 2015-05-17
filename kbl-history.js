@@ -375,7 +375,7 @@ d3.kblHistory = function module () {
     var curIndex =  curData.map(function(d){return d.key}).indexOf(d.key);
     // 해당 row avgRow 선택 표시
     var thisRow = d3.select(d3.select(self).node().parentNode);
-    var appendH = y.rangeBand()*2
+    var appendH = y.rangeBand()*3
     var underRows = svg.selectAll('.jg-row').filter(function(r,i) {
       return i > curIndex;
     })
@@ -442,34 +442,56 @@ d3.kblHistory = function module () {
       .attr('class', 'jg-bottom-row')
       .attr('transform', d3.svg.transform().translate([margin.left, y.rangeBand()]))
 
-    bottomRow.selectAll('.jg-coach-name')
-        .data(values)
-      .enter().append('text')
-      .attr('class', 'jg-coach-name')
-      .attr('x', function(d){return x(d.from)+x.rangeBand()*.1})
-      .attr('y', function(d){return y.rangeBand()*.25})
-      .text(function(d){return d.key})
-
-    bottomRow.selectAll('.jg-line')
-      .data(values)
-      .enter().append('line')
-      .attr('class', 'jg-line')
-      .attr('x1', function(d){return x(d.from)+x.rangeBand()*.1})
-      .attr('y1', function(d){return y.rangeBand()*.25})
-      .attr('x2', function(d){return x(d.to)+x.rangeBand()*.9})
-      .attr('y2', function(d){return y.rangeBand()*.25})
-
-    var clock = bottomRow.selectAll('.jg-rank-clock')
+    var bottomCol = bottomRow.selectAll('.jg-bottom-col')
         .data(values)
       .enter().append('g')
+      .attr('transform', d3.svg.transform()
+        .translate(
+          function(d,i){return [x(d.from), y.rangeBand()*.1]}
+        ))
+    //TODO : 연도 구간 추가하기 
+    bottomCol.selectAll('.jg-line')
+        .data(function(d){return [d,d]})
+      .enter().append('line')
+      .attr('class', 'jg-line')
+      .attr('x1', function(d){return x.rangeBand()*.1})
+      .attr('y1', function(d,i){return i*(y.rangeBand()*2.5)})
+      .attr('x2', function(d){return (d.to-d.from)*x.rangeBand()+x.rangeBand()*.9})
+      .attr('y2', function(d,i){return i*(y.rangeBand()*2.5)})
+
+    var clock = bottomCol.append('g')
       .attr('class', 'jg-rank-clock')
       .attr('transform', d3.svg.transform().translate(function(d){
-        return [x(d.from)+(x(d.to)-x(d.from))*.5, y.rangeBand()*.25]
+        return [(x(d.to)-x(d.from))*.5, y.rangeBand()*.1]
       }))
     clock.call(drawBackArc)
       .call(drawArc)
       .call(drawHand, 'normal_r', 'r')
       .call(drawHand, 'normal_rall', 'rall');
+
+
+    bottomCol.append('text')
+      .attr('class', 'jg-coach-name')
+      .attr('text-anchor', 'middle')
+      .attr('x', function(d){
+        d.x = (d.to-d.from+1)*x.rangeBand()*.5
+        return d.x
+      })
+      .attr('y', function(d){return y.rangeBand()*1.6})
+      .selectAll('tspan')
+        .data(function(d){
+          if(d.to-d.from==0) {
+            return [{x:d.x, key:d.key[0]+'—'}, {x:d.x, key:d.key.substring(1)}]
+          } else {
+            return [{x:d.x, key:d.key}]
+          }
+        })
+      .enter().append('tspan')
+      .attr('x', function(d){return d.x})//.attr('dx', function(d,i){return '-22px'})
+      .attr('dy', function(d,i){return i+'em'})
+      .text(function(d){return d.key})
+
+
     return selection;
   }
 
