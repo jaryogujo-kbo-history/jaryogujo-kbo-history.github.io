@@ -363,7 +363,10 @@ d3.kblHistory = function module () {
       .attr('dy', '.35em')
       .text(function(d) {return (!isSupp ? teamMap.get(d.key): d.key)})
       .on('mouseenter', function(d) {
-        svgYearStat.call(drawLineYearly, d)
+        if (!d3.select(this).classed('jg-supp')) {
+          svgYearStat.call(drawLineYearly, d)
+        }
+
       })
       .on('mouseleaver', function(d) {
         //TODO:마우스 아웃하면 사라지게???
@@ -774,11 +777,11 @@ d3.kblHistory = function module () {
       return !(d3.select(this).classed('jg-mouseover'))
     }).classed({'jg-hidden':true})
 
-  var suppRow = svgStack.selectAll('.jg-supp.jg-row')
+  var suppRow = svgStack.selectAll('.jg-supp.jg-temp.jg-row')
       .data([{key:targetName, values:overed.data()}], function(d){ return d.key})
 
     suppRow.enter().append('g')
-      .classed({'jg-supp':true, 'jg-row':true})
+      .classed({'jg-supp':true, 'jg-temp':true,'jg-row':true})
       .attr('transform', d3.svg.transform().translate(function(d) { return [0, y.rangeBand()] }))//attrs.tableHeight
 
     suppRow.exit().remove();
@@ -803,10 +806,10 @@ d3.kblHistory = function module () {
       var curHeight = parentSvg.attr('height')
       curHeight += y.rangeBand();
       parentSvg.attr('height', curHeight);
-      svgStack.selectAll('.jg-supp.jg-row')
-        .classed({'jg-supp':false, 'jg-supp-fixed':true})
-      var size = svgStack.selectAll('.jg-supp-fixed').size();
-      svgStack.selectAll('.jg-supp-fixed')
+      svgStack.selectAll('.jg-supp.jg-temp.jg-row')
+        .classed({'jg-temp':false, 'jg-fixed':true})
+      var size = svgStack.selectAll('.jg-fixed').size();
+      svgStack.selectAll('.jg-supp.jg-fixed')
         .transition().duration(400)
         .attr("transform", d3.svg.transform().translate(function(d,i) {
           var dy =  (y.rangeBand())+ ((size-i)*y.rangeBand());
