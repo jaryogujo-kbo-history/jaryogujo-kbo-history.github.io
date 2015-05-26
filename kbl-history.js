@@ -442,7 +442,7 @@ d3.kblHistory = function module () {
       shrinkExisting();
       drawOn();
     } else if (thisRow.classed('jg-selected') && !thisRow.classed('jg-mouseover') && isOver) {
-      
+
     } else if (thisRow.classed('jg-selected') ) { //off
       shrinkExisting();
     } else { //on
@@ -484,7 +484,7 @@ d3.kblHistory = function module () {
       var clock = bottomCol.append('g')
         .attr('class', 'jg-rank-clock')
         .attr('transform', d3.svg.transform().translate(function(d){
-          return [(x(d.to)-x(d.from))*.5, y.rangeBand()*.1]
+          return [(x(d.to)-x(d.from))*.5, y.rangeBand()*1.1]
         }))
       clock.call(drawBackArc)
         .call(drawArc)
@@ -499,7 +499,7 @@ d3.kblHistory = function module () {
         d.x = (d.to-d.from+1)*x.rangeBand()*.5
         return d.x
       })
-      .attr('y', function(d){return (isOver? y.rangeBand()*.6:y.rangeBand()*1.6)})
+      .attr('y', function(d){return y.rangeBand()*.6})//(isOver? y.rangeBand()*.6:y.rangeBand()*1.6)})
       .selectAll('tspan')
         .data(function(d){
           if(d.to-d.from==0 && (isSupp ? teamMap.get(d.key) : d.key).length >= 3) {
