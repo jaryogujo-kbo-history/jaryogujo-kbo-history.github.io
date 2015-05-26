@@ -19,7 +19,7 @@ d3.kblHistory = function module () {
     'HT':'해태','LT':'롯데','SM':'삼미','LG':'LG','DS':'두산','KA':'KIA',
     'BG':'빙그레','HH':'한화','SK':'SK','NS':'넥센','NC':'NC','SB':'쌍방울',
     'CB':'청보','TP':'태평양','HD':'현대'})
-  var svg, svgYearStat, svgStack;
+  var svg, svgYearStat, svgStack, svgTeamStat;
   var teamCoachData, coachTeamData, curMode = modes[0], suppData=[];
   var width, height;
   var color = d3.scale.category10();
@@ -27,15 +27,22 @@ d3.kblHistory = function module () {
 
   var exports = function (_selection) {
     _selection.each(function(_data) {
+
       d3.select(this).style('width', attrs.canvasWidth+'px')//.style('height', attrs.canvasHeight+'px')
       width = attrs.canvasWidth - margin.left - margin.right;
       height =  attrs.canvasHeight - margin.top - margin.bottom;
       dataInit(_data);
       if (!svg) {
+
+        var teamStatDiv = d3.select(this).append('div')
+          .attr('class', 'jg-div-team-stat')
+        svgTeamStat = teamStatDiv.append('svg')
+          .attr('class','jg-svg-team-stat')
+          .attr('width', width + margin.left + margin.right)
+          .attr('height', attrs.yearStatHeight)
+
         var yearStatDiv = d3.select(this).append('div')
           .attr('class', 'jg-div-year-stat')
-          .attr('class', 'jg-year-stat')
-          .attr('transform', d3.svg.transform().translate([margin.left, margin.top/2]));
 
         svgYearStat = yearStatDiv.selectAll('jg-svg-year-stat')
           .data([yearData])
@@ -69,6 +76,7 @@ d3.kblHistory = function module () {
 
       }
       svgYearStat.call(svgYearStatInit);
+      svgTeamStat.call(svgTeamStatInit);
       svg.call(tableInit);
       svgStack.call(svgStackInit);
     }); //end of each
@@ -122,9 +130,39 @@ d3.kblHistory = function module () {
 
   }
 
+  function svgTeamStatInit(svg) {
+    curYearExtent = turnRangeToExtent(yearStatBrush.extent());
+    var avgData = getAverageData(teamCoachData, curYearExtent);
+
+    var g = svg.append('g')
+        .attr('class', 'jg-team-stat-line-g')
+        .attr('transform', d3.svg.transform()
+          .translate([  (attrs.canvasWidth - (avgData.length*x.rangeBand()*1.25))/2 ,margin.top/2])); //0
+    g.call(drawAvgRows, avgData);
+
+    return svg;
+  }
+
+  function drawAvgRows(selection, avgData) {
+    var row = selection.selectAll('.jg-row-avg')
+        .data(avgData)
+
+    row.enter().append('g')
+      .attr('class', 'jg-row-avg')
+      .attr('transform', d3.svg.transform().translate(function(d,i) {
+        return [x.rangeBand()*1.25*i, margin.top];
+      }))
+    row.selectAll('text')
+        .data(function(d) { return d})
+      .enter().append('text')
+      .attr('text-anchor', 'middle')
+      .attr('x', x.rangeBand()/2)
+      .text(function(d){return teamMap.get(d.key)})
+    row.call(drawRankArc, true);
+  }
+
   function svgYearStatInit(svg) {
-    var gLine =
-      svg.append('g')
+    var gLine = svg.append('g')
         .attr('class', 'jg-year-stat-line-g')
         .attr('transform', d3.svg.transform().translate([margin.left,  margin.top/2])); //0
 
@@ -255,7 +293,7 @@ d3.kblHistory = function module () {
       if (curYearExtent[0] !== domain[0] || curYearExtent[1] !== domain[1]) {
         curYearExtent = domain
         var avgData = getAverageData(teamCoachData, curYearExtent);
-        svg.call(drawAvgRows, avgData);
+        svgTeamStat.call(drawAvgRows, avgData);
       }
       d3.select(this).call(yearStatBrush.extent(extent1));
     }
@@ -319,23 +357,8 @@ d3.kblHistory = function module () {
     .attr('transform', d3.svg.transform().translate(function() {return [0,margin.top]})) //margin.left
 
     table.call(drawRows)
-    curYearExtent = turnRangeToExtent(yearStatBrush.extent());
-    var avgData = getAverageData(teamCoachData, curYearExtent);
-    svg.call(drawAvgRows, avgData);
   }
 
-  function drawAvgRows(selection, avgData) {
-    //FIXME : row에 편입시키기
-    var row = selection.selectAll('.jg-row-avg')
-        .data(avgData)
-
-    row.enter().append('g')
-      .attr('class', 'jg-row-avg')
-      .attr('transform', d3.svg.transform().translate(function(d,i) {
-        return [margin.left*.15, i*y.rangeBand()+margin.top];
-      }))
-    row.call(drawRankArc, true);
-  }
 
   function drawRows(table) {
 
@@ -808,12 +831,7 @@ d3.kblHistory = function module () {
     suppRow.enter().append('g')
       .classed({'jg-supp':true, 'jg-temp':true,'jg-row':true})
       .attr('transform', d3.svg.transform().translate(function(d) { return [0, y.rangeBand()] }))
-      .on('mouseover', function(d) {
-        addBottomRow(d3.select(this), true);
-      })
-      .on('click', function() {
-        addBottomRow(d3.select(this));
-      })//attrs.tableHeight
+
     suppRow.exit().remove();
     suppRow.call(drawCols, true)
     suppRow.call(drawLabel, true)
