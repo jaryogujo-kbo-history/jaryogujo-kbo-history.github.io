@@ -341,6 +341,14 @@ d3.kblHistory = function module () {
       d.y = y(d.key);
       return [0, d.y]
     }))
+    .on('mouseover', function(d) {
+      svgYearStat.call(drawLineYearly, d)
+      addBottomRow(d3.select(this), true);
+    })
+    .on('click', function() {
+      addBottomRow(d3.select(this));
+    })
+    //.on('mouseover')
     curYearExtent = turnRangeToExtent(yearStatBrush.extent());
     //row.call(drawAvg, curYearExtent);
     row.call(drawLabel);
@@ -358,6 +366,7 @@ d3.kblHistory = function module () {
       .attr('y', function(d){return y.rangeBand()*.5  }) //+ margin.top
       .attr('dy', '.35em')
       .text(function(d) {return (!isSupp ? teamMap.get(d.key): d.key)})
+      /*
       .on('mouseenter', function(d) {
         var thisRow = d3.select(this).node().parentNode;
         if (!d3.select(thisRow).classed('jg-supp')) {
@@ -373,13 +382,16 @@ d3.kblHistory = function module () {
         //jg-supp jg-row
         addBottomRow(d, this);
       })
+      */
   }
 
-  function addBottomRow(d,self,/*optional*/isOver) { //FIXME : 팀용 이냐 감독용이냐에 따라 다른 기준 적용
+  function addBottomRow(thisRow,/*optional*/isOver) { //FIXME : 팀용 이냐 감독용이냐에 따라 다른 기준 적용
     isOver = isOver || false;
     var appendHClicked = y.rangeBand()*3, appendHOvered = y.rangeBand() * 1.25;
     var appendH = isOver ? appendHOvered : appendHClicked;
-    var thisRow = d3.select(d3.select(self).node().parentNode);
+    var d = thisRow.datum();
+    //var thisRow = d3.select(d3.select(self).node().parentNode);
+
     var isSupp = thisRow.classed('jg-supp')
     var thisSvg = isSupp ? svgStack : svg;
     var curIndex =  0;
@@ -441,7 +453,7 @@ d3.kblHistory = function module () {
     if (thisRow.classed('jg-selected') && thisRow.classed('jg-mouseover') && !isOver) {
       shrinkExisting();
       drawOn();
-    } else if (thisRow.classed('jg-selected') && !thisRow.classed('jg-mouseover') && isOver) {
+    } else if (thisRow.classed('jg-selected')  && isOver) {
 
     } else if (thisRow.classed('jg-selected') ) { //off
       shrinkExisting();
@@ -797,7 +809,13 @@ d3.kblHistory = function module () {
         .data(thisData, function(d){ return d.key})
     suppRow.enter().append('g')
       .classed({'jg-supp':true, 'jg-temp':true,'jg-row':true})
-      .attr('transform', d3.svg.transform().translate(function(d) { return [0, y.rangeBand()] }))//attrs.tableHeight
+      .attr('transform', d3.svg.transform().translate(function(d) { return [0, y.rangeBand()] }))
+      .on('mouseover', function(d) {
+        addBottomRow(d3.select(this), true);
+      })
+      .on('click', function() {
+        addBottomRow(d3.select(this));
+      })//attrs.tableHeight
     suppRow.exit().remove();
     suppRow.call(drawCols, true)
     suppRow.call(drawLabel, true)
