@@ -363,20 +363,22 @@ d3.kblHistory = function module () {
         if (!d3.select(thisRow).classed('jg-supp')) {
           svgYearStat.call(drawLineYearly, d)
         }
+        addBottomRow(d, this, true);
       })
-      .on('mouseleaver', function(d) {
+      .on('mouseleave', function(d) {
+        addBottomRow(d, this, true);
         //TODO:마우스 아웃하면 사라지게???
       })
       .on('click', function(d) {
         //jg-supp jg-row
         addBottomRow(d, this);
-
       })
   }
 
-  function addBottomRow(d,self) { //FIXME : 팀용 이냐 감독용이냐에 따라 다른 기준 적용
-    var appendH = y.rangeBand()*3
-    // 해당 row avgRow 선택 표시
+  function addBottomRow(d,self,/*optional*/isOver) { //FIXME : 팀용 이냐 감독용이냐에 따라 다른 기준 적용
+    isOver = isOver || false;
+    var appendHClicked = y.rangeBand()*3, appendHOvered = y.rangeBand() * 1.25;
+    var appendH = isOver ? appendHOvered : appendHClicked;
     var thisRow = d3.select(d3.select(self).node().parentNode);
     var isSupp = thisRow.classed('jg-supp')
     var thisSvg = isSupp ? svgStack : svg;
@@ -403,6 +405,7 @@ d3.kblHistory = function module () {
       var selectedRow = thisSvg.selectAll('.jg-row.jg-selected');
       if (selectedRow.size() >0) {
         selectedRow.selectAll('.jg-bottom-row').remove();
+
         var selectedRowIndex = 0;
         thisSvg.selectAll('.jg-row').each(function(dd,ii) {
           if (dd.key == selectedRow.data()[0].key) selectedRowIndex  = ii;
@@ -414,40 +417,41 @@ d3.kblHistory = function module () {
         var selectedUnderRowAvg = thisSvg.selectAll('.jg-row-avg').filter(function(r,i) {
           return i > selectedRowIndex;
         })
-        // 기존에 다른 게 있으면 줄어들게 하기
+        var appendH = selectedRow.classed('jg-mouseover') ? appendHOvered : appendHClicked;
         selectedUnderRows.call(moveUpDownFunc, -appendH);
         selectedUnderRowAvg.call(moveUpDownFunc, -appendH);
-        selectedRow.classed({'jg-selected':false});
+        selectedRow.classed({'jg-selected':false, 'jg-mouseover':false});
         thisSvg.selectAll('.jg-row-avg.jg-selected').classed({'jg-selected':false});
         if(isSupp) attrs.stackHeight -= appendH
         else attrs.tableHeight -= appendH
         d3.select(thisSvg.node().parentNode).attr('height', (isSupp? attrs.stackHeight : attrs.tableHeight))
       }
     }
-
-    if (thisRow.classed('jg-selected')) { //off
-      shrinkExisting();
-    } else { //on
-      shrinkExisting();
-      //해당 row와 avgRow 밑에 있는 것들  선택되게 하기
+    var drawOn = function () {
       underRows.call(moveUpDownFunc, appendH);
       underRowAvg.call(moveUpDownFunc, appendH);
       if(isSupp) attrs.stackHeight += appendH
       else attrs.tableHeight += appendH
       d3.select(thisSvg.node().parentNode)
         .attr('height', (isSupp? attrs.stackHeight : attrs.tableHeight))
-      thisRow.classed({'jg-selected':true}) //thisRowAvg.classed({'jg-selected':true});
-        .call(drawBottomRow, d, isSupp);
+      thisRow.classed({'jg-selected':true, 'jg-mouseover':isOver}) //thisRowAvg.classed({'jg-selected':true});
+        .call(drawBottomRow, d, isSupp, isOver);
+    }
+
+    if (thisRow.classed('jg-selected') && thisRow.classed('jg-mouseover') && !isOver) {
+      shrinkExisting();
+      drawOn();
+    } else if (thisRow.classed('jg-selected') && !thisRow.classed('jg-mouseover') && isOver) {
+      
+    } else if (thisRow.classed('jg-selected') ) { //off
+      shrinkExisting();
+    } else { //on
+      shrinkExisting();
+      drawOn();
     }
   }
 
-  function drawBottomRow(selection, d, isSupp) {
-    //var bottomRow = svg.
-      //감독별 라인 그려넣기
-        //최초 시작부터 끝까지
-      //감독별 평균 점수 그려넣기
-        //위치 정하기
-        //감독별 normal_r, normall_all
+  function drawBottomRow(selection, d, isSupp, isOver) {
     var values = []
     d.values.forEach(function(curData) {
       var key = curData.key
@@ -468,26 +472,25 @@ d3.kblHistory = function module () {
         .translate(
           function(d,i){return [x(d.from), y.rangeBand()*.1]}
         ))
-    //TODO : 연도 구간 추가하기
     bottomCol.selectAll('.jg-line')
-        .data(function(d){return [d,d]})
+        .data(function(d){return isOver? [d]:[d,d]})
       .enter().append('line')
       .attr('class', 'jg-line')
       .attr('x1', function(d){return x.rangeBand()*.1})
       .attr('y1', function(d,i){return i*(y.rangeBand()*2.5)})
       .attr('x2', function(d){return (d.to-d.from)*x.rangeBand()+x.rangeBand()*.9})
       .attr('y2', function(d,i){return i*(y.rangeBand()*2.5)})
-
-    var clock = bottomCol.append('g')
-      .attr('class', 'jg-rank-clock')
-      .attr('transform', d3.svg.transform().translate(function(d){
-        return [(x(d.to)-x(d.from))*.5, y.rangeBand()*.1]
-      }))
-    clock.call(drawBackArc)
-      .call(drawArc)
-      .call(drawHand, 'normal_r', 'r')
-      .call(drawHand, 'normal_rall', 'rall');
-
+    if (!isOver) {
+      var clock = bottomCol.append('g')
+        .attr('class', 'jg-rank-clock')
+        .attr('transform', d3.svg.transform().translate(function(d){
+          return [(x(d.to)-x(d.from))*.5, y.rangeBand()*.1]
+        }))
+      clock.call(drawBackArc)
+        .call(drawArc)
+        .call(drawHand, 'normal_r', 'r')
+        .call(drawHand, 'normal_rall', 'rall');
+    }
 
     bottomCol.append('text')
       .attr('class', 'jg-coach-name')
@@ -496,7 +499,7 @@ d3.kblHistory = function module () {
         d.x = (d.to-d.from+1)*x.rangeBand()*.5
         return d.x
       })
-      .attr('y', function(d){return y.rangeBand()*1.6})
+      .attr('y', function(d){return (isOver? y.rangeBand()*.6:y.rangeBand()*1.6)})
       .selectAll('tspan')
         .data(function(d){
           if(d.to-d.from==0 && (isSupp ? teamMap.get(d.key) : d.key).length >= 3) {
