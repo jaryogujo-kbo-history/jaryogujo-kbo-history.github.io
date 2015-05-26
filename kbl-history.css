@@ -103,7 +103,7 @@ circle.jg-link {
   stroke: #22cb00
 }
 
-.jg-rank-arc, .jg-year-stat-rall-point, .jg-year-stat-r-point {
+.jg-rank-arc, .jg-year-stat-rall-point {
   opacity : .75;
 }
 
@@ -113,6 +113,9 @@ circle.jg-link {
 
 .jg-rank-arc.jg-r, .jg-year-stat-point.jg-r {
   fill: #1698d8;
+}
+.jg-year-stat-point.jg-hidden {
+  opacity : .25;
 }
 
 .jg-rank-arc.jg-back {

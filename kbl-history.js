@@ -208,6 +208,12 @@ d3.kblHistory = function module () {
     lineFunc(flatData, 'jg-r', 'normal_r', .35)
     lineFunc(flatData, 'jg-rall', 'normal_rall', .65)
 
+    selection.selectAll('.jg-year-stat-point')
+      .classed({'jg-hidden':false})
+      .filter(function(d) { return d.team !== selectedTeam.key})
+      .classed({'jg-hidden':true})
+
+    return selection
   }
 
   function drawBrushYearStat(selection) {
