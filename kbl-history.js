@@ -137,7 +137,7 @@ d3.kblHistory = function module () {
     var g = svg.append('g')
         .attr('class', 'jg-team-stat-line-g')
         .attr('transform', d3.svg.transform()
-          .translate([  (attrs.canvasWidth - (avgData.length*x.rangeBand()*1.25))/2 ,margin.top/2])); //0
+          .translate([(margin.left + attrs.canvasWidth - (avgData.length*x.rangeBand()*1.25))/2 ,margin.top/2])); //0
     g.call(drawAvgRows, avgData);
 
     return svg;
