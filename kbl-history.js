@@ -347,13 +347,10 @@ d3.kblHistory = function module () {
       d.y = y(d.key);
       return [0, d.y]
     }))
-    .on('mouseover', function(d) {
+    .on('mouseenter', function(d){
       svgYearStat.call(drawLineYearly, d)
-      addBottomRow(d3.select(this), true);
     })
-    .on('click', function() {
-      addBottomRow(d3.select(this));
-    })
+
     //.on('mouseover')
     curYearExtent = turnRangeToExtent(yearStatBrush.extent());
     //row.call(drawAvg, curYearExtent);
@@ -372,23 +369,14 @@ d3.kblHistory = function module () {
       .attr('y', function(d){return y.rangeBand()*.5  }) //+ margin.top
       .attr('dy', '.35em')
       .text(function(d) {return (!isSupp ? teamMap.get(d.key): d.key)})
-      /*
-      .on('mouseenter', function(d) {
-        var thisRow = d3.select(this).node().parentNode;
-        if (!d3.select(thisRow).classed('jg-supp')) {
-          svgYearStat.call(drawLineYearly, d)
-        }
-        addBottomRow(d, this, true);
+      .on('mouseover', function(d) {
+        var thisRow = d3.select(d3.select(this).node().parentNode);
+        addBottomRow(thisRow, true);
       })
-      .on('mouseleave', function(d) {
-        addBottomRow(d, this, true);
-        //TODO:마우스 아웃하면 사라지게???
+      .on('click', function() {
+        var thisRow = d3.select(d3.select(this).node().parentNode);
+        addBottomRow(thisRow);
       })
-      .on('click', function(d) {
-        //jg-supp jg-row
-        addBottomRow(d, this);
-      })
-      */
   }
 
   function addBottomRow(thisRow,/*optional*/isOver) { //FIXME : 팀용 이냐 감독용이냐에 따라 다른 기준 적용
@@ -552,7 +540,11 @@ d3.kblHistory = function module () {
     }))
 
     if(!isSupp) {
-      col.on('mouseover', mouseOverColFunc)
+      col.on('mouseover', function(d,i) {
+          mouseOverColFunc(d,i)
+          var thisRow = d3.select(d3.select(this).node().parentNode);
+          addBottomRow(thisRow, true);
+        })
         .on('mouseout', function() {
           col.classed({'jg-hidden':false, 'jg-mouseover':false})
         })
@@ -838,7 +830,7 @@ d3.kblHistory = function module () {
       var thisCoach =d[0].first_coach_name
       svg.selectAll('.jg-col').classed({'jg-clicked':false})
       var clicked = svg.selectAll('.jg-col.jg-mouseover')//.filter(function(d) {return d[0].first_coach_name === thisCoach})
-        .classed({'jg-clicked':true, 'jg-mouseover':false})
+        .classed({'jg-clicked':true})//, 'jg-mouseover':false})
 
       var parentSvg = d3.select(svgStack.node().parentNode) //FIXME : 중복 감독 추가시 위로 올리기
       //var curHeight = parentSvg.attr('height')
