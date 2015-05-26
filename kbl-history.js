@@ -20,7 +20,7 @@ d3.kblHistory = function module () {
     'BG':'빙그레','HH':'한화','SK':'SK','NS':'넥센','NC':'NC','SB':'쌍방울',
     'CB':'청보','TP':'태평양','HD':'현대'})
   var svg, svgYearStat, svgStack;
-  var curData, nestedByTeam, nestedByCoach, curMode = modes[0], suppData=[];
+  var teamCoachData, coachTeamData, curMode = modes[0], suppData=[];
   var width, height;
   var color = d3.scale.category10();
   var yearStatBrush, curYearExtent, yearData;
@@ -47,7 +47,7 @@ d3.kblHistory = function module () {
         var tableDiv = d3.select(this).append('div')
           .attr('class', 'jg-div-table')
         svg = tableDiv.selectAll('svg.jg-svg')
-          .data([curData])
+          .data([teamCoachData])
         .enter().append('svg')
         .attr('class','jg-svg')
         .attr('width', width + margin.left + margin.right)
@@ -55,15 +55,14 @@ d3.kblHistory = function module () {
           .append('g')
         .attr('class', 'jg-svg-g')
 
-
-
         var stackDiv = d3.select(this).append('div')
           .attr('class', 'jg-div-stack')
 
+        attrs.stackHeight = y.rangeBand()*3;
         svgStack = stackDiv.append('svg')
           .attr('class','jg-svg-stack')
           .attr('width', width + margin.left + margin.right)
-          .attr('height', y.rangeBand()*3)
+          .attr('height', attrs.stackHeight)
           .append('g')
           .attr('class', 'jg-stack')
           .attr('transform', d3.svg.transform().translate([0, margin.top/2]));
@@ -87,11 +86,10 @@ d3.kblHistory = function module () {
 
     calRanks(_data);
     calNestedData(_data);
-    curData = (curMode===modes[0] ? nestedByTeam : nestedByCoach);
     x.rangeRoundBands([0, width])
       .domain(d3.range(yearExtent[0], yearExtent[1]+1))
     y.rangeRoundBands([0, height])
-      .domain(curData.map(function(d) {return d.key}))
+      .domain(teamCoachData.map(function(d) {return d.key}))
     var rExtent = d3.extent(_data, function(d){return d.r});
     var rallExtent = d3.extent(_data, function(d){return d.rall})
     var yearDescExtent = [d3.min([rExtent[0], rallExtent[0]]), d3.max([rExtent[1], rallExtent[1]])];
@@ -250,7 +248,7 @@ d3.kblHistory = function module () {
       var domain = turnRangeToExtent(extent1);
       if (curYearExtent[0] !== domain[0] || curYearExtent[1] !== domain[1]) {
         curYearExtent = domain
-        var avgData = getAverageData(curData, curYearExtent);
+        var avgData = getAverageData(teamCoachData, curYearExtent);
         svg.call(drawAvgRows, avgData);
       }
       d3.select(this).call(yearStatBrush.extent(extent1));
@@ -316,7 +314,7 @@ d3.kblHistory = function module () {
 
     table.call(drawRows)
     curYearExtent = turnRangeToExtent(yearStatBrush.extent());
-    var avgData = getAverageData(curData, curYearExtent);
+    var avgData = getAverageData(teamCoachData, curYearExtent);
     svg.call(drawAvgRows, avgData);
   }
 
@@ -350,9 +348,7 @@ d3.kblHistory = function module () {
   }
 
 
-
   function drawLabel(row, isSupp) {
-
     row.selectAll('.jg-label')
         .data(function(d) {return [d]})
       .enter().append('text')
@@ -363,10 +359,10 @@ d3.kblHistory = function module () {
       .attr('dy', '.35em')
       .text(function(d) {return (!isSupp ? teamMap.get(d.key): d.key)})
       .on('mouseenter', function(d) {
-        if (!d3.select(this).classed('jg-supp')) {
+        var thisRow = d3.select(this).node().parentNode;
+        if (!d3.select(thisRow).classed('jg-supp')) {
           svgYearStat.call(drawLineYearly, d)
         }
-
       })
       .on('mouseleaver', function(d) {
         //TODO:마우스 아웃하면 사라지게???
@@ -374,17 +370,24 @@ d3.kblHistory = function module () {
       .on('click', function(d) {
         //jg-supp jg-row
         addBottomRow(d, this);
+
       })
   }
 
   function addBottomRow(d,self) { //FIXME : 팀용 이냐 감독용이냐에 따라 다른 기준 적용
-    var curIndex =  curData.map(function(d){return d.key}).indexOf(d.key);
+    var appendH = y.rangeBand()*3
     // 해당 row avgRow 선택 표시
     var thisRow = d3.select(d3.select(self).node().parentNode);
-    var thisSvg = (thisRow.classed('jg-supp') || thisRow.classed('jg-supp-fixed'))? svgStack:svg;
-    var appendH = y.rangeBand()*3
+    var isSupp = thisRow.classed('jg-supp')
+    var thisSvg = isSupp ? svgStack : svg;
+    var curIndex =  0;
+    thisSvg.selectAll('.jg-row').each(function(dd,ii) {
+      if (dd.key == d.key) curIndex  = ii;
+    })
+
     var underRows = thisSvg.selectAll('.jg-row').filter(function(r,i) {
-      return i > curIndex;
+      var pos = d3.transform(d3.select(this).attr('transform')).translate
+      return pos[1] >d3.transform(thisRow.attr('transform')).translate[1]
     })
     var underRowAvg = thisSvg.selectAll('.jg-row-avg').filter(function(r,i) {
       return i > curIndex;
@@ -400,9 +403,13 @@ d3.kblHistory = function module () {
       var selectedRow = thisSvg.selectAll('.jg-row.jg-selected');
       if (selectedRow.size() >0) {
         selectedRow.selectAll('.jg-bottom-row').remove();
-        var selectedRowIndex = curData.map(function(d){return d.key}).indexOf(selectedRow.data()[0].key);
+        var selectedRowIndex = 0;
+        thisSvg.selectAll('.jg-row').each(function(dd,ii) {
+          if (dd.key == selectedRow.data()[0].key) selectedRowIndex  = ii;
+        })
         var selectedUnderRows = thisSvg.selectAll('.jg-row').filter(function(r,i) {
-          return i > selectedRowIndex;
+          var pos = d3.transform(d3.select(this).attr('transform')).translate
+          return pos[1] >d3.transform(selectedRow.attr('transform')).translate[1]
         })
         var selectedUnderRowAvg = thisSvg.selectAll('.jg-row-avg').filter(function(r,i) {
           return i > selectedRowIndex;
@@ -412,7 +419,9 @@ d3.kblHistory = function module () {
         selectedUnderRowAvg.call(moveUpDownFunc, -appendH);
         selectedRow.classed({'jg-selected':false});
         thisSvg.selectAll('.jg-row-avg.jg-selected').classed({'jg-selected':false});
-        d3.select(thisSvg.node().parentNode).attr('height', attrs.canvasHeight)
+        if(isSupp) attrs.stackHeight -= appendH
+        else attrs.tableHeight -= appendH
+        d3.select(thisSvg.node().parentNode).attr('height', (isSupp? attrs.stackHeight : attrs.tableHeight))
       }
     }
 
@@ -423,13 +432,16 @@ d3.kblHistory = function module () {
       //해당 row와 avgRow 밑에 있는 것들  선택되게 하기
       underRows.call(moveUpDownFunc, appendH);
       underRowAvg.call(moveUpDownFunc, appendH);
-      d3.select(thisSvg.node().parentNode).attr('height', attrs.canvasHeight + appendH)
+      if(isSupp) attrs.stackHeight += appendH
+      else attrs.tableHeight += appendH
+      d3.select(thisSvg.node().parentNode)
+        .attr('height', (isSupp? attrs.stackHeight : attrs.tableHeight))
       thisRow.classed({'jg-selected':true}) //thisRowAvg.classed({'jg-selected':true});
-        .call(drawBottomRow, d);
+        .call(drawBottomRow, d, isSupp);
     }
   }
 
-  function drawBottomRow(selection, d) {
+  function drawBottomRow(selection, d, isSupp) {
     //var bottomRow = svg.
       //감독별 라인 그려넣기
         //최초 시작부터 끝까지
@@ -437,9 +449,9 @@ d3.kblHistory = function module () {
         //위치 정하기
         //감독별 normal_r, normall_all
     var values = []
-    d.values.forEach(function(coachData) {
-      var key = coachData.key
-      coachData.values.forEach(function(coachValues) {
+    d.values.forEach(function(curData) {
+      var key = curData.key
+      curData.values.forEach(function(coachValues) {
         var normal_r = d3.mean(coachValues, function(d){return d.normal_r})
         var normal_rall = d3.mean(coachValues, function(d){return d.normal_rall})
         values.push({key:key, from:coachValues[0].year, to:coachValues[coachValues.length-1].year, normal_r:normal_r, normal_rall:normal_rall})
@@ -487,7 +499,7 @@ d3.kblHistory = function module () {
       .attr('y', function(d){return y.rangeBand()*1.6})
       .selectAll('tspan')
         .data(function(d){
-          if(d.to-d.from==0) {
+          if(d.to-d.from==0 && (isSupp ? teamMap.get(d.key) : d.key).length >= 3) {
             return [{x:d.x, key:d.key[0]+'—'}, {x:d.x, key:d.key.substring(1)}]
           } else {
             return [{x:d.x, key:d.key}]
@@ -496,9 +508,7 @@ d3.kblHistory = function module () {
       .enter().append('tspan')
       .attr('x', function(d){return d.x})//.attr('dx', function(d,i){return '-22px'})
       .attr('dy', function(d,i){return i+'em'})
-      .text(function(d){return d.key})
-
-
+      .text(function(d){return isSupp ? teamMap.get(d.key) : d.key})
     return selection;
   }
 
@@ -506,7 +516,7 @@ d3.kblHistory = function module () {
     isSupp = isSupp || false;
     var col = row.selectAll('g.jg-col')
       .data(function (d) {
-        if(isSupp) return d.values
+        //if(isSupp) return d.values
         return d.values.reduce(function(pre, cur){ return pre.concat(cur.values)}, [])
       })
     .enter().append('g')
@@ -719,9 +729,9 @@ d3.kblHistory = function module () {
 
 
   function calNestedData(_data) {
-    nestedByTeam = nestFunc('final_team_code', 'first_coach_name')
+    teamCoachData = nestFunc('final_team_code', 'first_coach_name')
       .entries(_data);
-    nestedByCoach = nestFunc('first_coach_name', 'final_team_code')
+    coachTeamData = nestFunc('first_coach_name', 'final_team_code')
       .entries(_data);
   }
 
@@ -777,13 +787,14 @@ d3.kblHistory = function module () {
       return !(d3.select(this).classed('jg-mouseover'))
     }).classed({'jg-hidden':true})
 
-  var suppRow = svgStack.selectAll('.jg-supp.jg-temp.jg-row')
-      .data([{key:targetName, values:overed.data()}], function(d){ return d.key})
-
+    var thisData = coachTeamData.filter(function(dd) {
+      return dd.key == targetName;
+    });
+    var suppRow = svgStack.selectAll('.jg-supp.jg-temp.jg-row')
+        .data(thisData, function(d){ return d.key})
     suppRow.enter().append('g')
       .classed({'jg-supp':true, 'jg-temp':true,'jg-row':true})
       .attr('transform', d3.svg.transform().translate(function(d) { return [0, y.rangeBand()] }))//attrs.tableHeight
-
     suppRow.exit().remove();
     suppRow.call(drawCols, true)
     suppRow.call(drawLabel, true)
@@ -803,9 +814,9 @@ d3.kblHistory = function module () {
         .classed({'jg-clicked':true, 'jg-mouseover':false})
 
       var parentSvg = d3.select(svgStack.node().parentNode) //FIXME : 중복 감독 추가시 위로 올리기
-      var curHeight = parentSvg.attr('height')
-      curHeight += y.rangeBand();
-      parentSvg.attr('height', curHeight);
+      //var curHeight = parentSvg.attr('height')
+      attrs.stackHeight += y.rangeBand();
+      parentSvg.attr('height', attrs.stackHeight);
       svgStack.selectAll('.jg-supp.jg-temp.jg-row')
         .classed({'jg-temp':false, 'jg-fixed':true})
       var size = svgStack.selectAll('.jg-fixed').size();
