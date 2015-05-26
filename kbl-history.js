@@ -404,7 +404,7 @@ d3.kblHistory = function module () {
 
   function addBottomRow(thisRow,/*optional*/isOver) { //FIXME : 팀용 이냐 감독용이냐에 따라 다른 기준 적용
     isOver = isOver || false;
-    var appendHClicked = y.rangeBand()*3, appendHOvered = y.rangeBand() * 1.25;
+    var appendHClicked = y.rangeBand()*2.25, appendHOvered = y.rangeBand() * 1;
     var appendH = isOver ? appendHOvered : appendHClicked;
     var d = thisRow.datum();
     //var thisRow = d3.select(d3.select(self).node().parentNode);
@@ -499,21 +499,21 @@ d3.kblHistory = function module () {
       .enter().append('g')
       .attr('transform', d3.svg.transform()
         .translate(
-          function(d,i){return [x(d.from), y.rangeBand()*.1]}
+          function(d,i){return [x(d.from), y.rangeBand()*.025]}
         ))
     bottomCol.selectAll('.jg-line')
         .data(function(d){return isOver? [d]:[d,d]})
       .enter().append('line')
       .attr('class', 'jg-line')
       .attr('x1', function(d){return x.rangeBand()*.1})
-      .attr('y1', function(d,i){return i*(y.rangeBand()*2.5)})
+      .attr('y1', function(d,i){return i*(y.rangeBand()*2)})
       .attr('x2', function(d){return (d.to-d.from)*x.rangeBand()+x.rangeBand()*.9})
-      .attr('y2', function(d,i){return i*(y.rangeBand()*2.5)})
+      .attr('y2', function(d,i){return i*(y.rangeBand()*2)})
     if (!isOver) {
       var clock = bottomCol.append('g')
         .attr('class', 'jg-rank-clock')
         .attr('transform', d3.svg.transform().translate(function(d){
-          return [(x(d.to)-x(d.from))*.5, y.rangeBand()*1.1]
+          return [(x(d.to)-x(d.from))*.5, y.rangeBand()*.85]
         }))
       clock.call(drawBackArc)
         .call(drawArc)
@@ -528,7 +528,7 @@ d3.kblHistory = function module () {
         d.x = (d.to-d.from+1)*x.rangeBand()*.5
         return d.x
       })
-      .attr('y', function(d){return y.rangeBand()*.6})//(isOver? y.rangeBand()*.6:y.rangeBand()*1.6)})
+      .attr('y', function(d){return y.rangeBand()*.45})//(isOver? y.rangeBand()*.6:y.rangeBand()*1.6)})
       .selectAll('tspan')
         .data(function(d){
           if(d.to-d.from==0 && (isSupp ? teamMap.get(d.key) : d.key).length >= 3) {
