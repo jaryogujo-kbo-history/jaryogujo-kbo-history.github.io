@@ -684,13 +684,16 @@ d3.kblHistory = function module () {
         return 0
       }).attr('y1', 0)
       .attr('x2', radius).attr('y2', 0)
-      .attr('transform', d3.svg.transform()
-        .translate(function(){
+      .attr('transform', d3.svg.transform().translate(function(){
+            return [x.rangeBand()*.5, y.rangeBand()*.5]
+          }))
+
+      hand.transition().duration(600).attr('transform', d3.svg.transform().translate(function(){
             return [x.rangeBand()*.5, y.rangeBand()*.5]
           }).rotate(function(d) {
-            return (key=='normal_r' ? thetaR(d[key]) :thetaRall(d[key]) ) * (180/Math.PI) -90;
-          })
-      )
+        return (key=='normal_r' ? thetaR(d[key]) :thetaRall(d[key]) ) * (180/Math.PI) -90;
+      }))
+
     return selection;
   }
   function drawBackArc(selection) {
@@ -749,7 +752,7 @@ d3.kblHistory = function module () {
       } else {
         return 'jg-rank-arc jg-rank jg-rall'
       }
-    }).attr('d', arc)
+    }).transition().duration(600).attr('d', arc)
 
     return selection
 
