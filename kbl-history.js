@@ -392,9 +392,17 @@ d3.kblHistory = function module () {
       .attr('y', function(d){return y.rangeBand()*.5  }) //+ margin.top
       .attr('dy', '.35em')
       .text(function(d) {return (!isSupp ? teamMap.get(d.key): d.key)})
-      .on('mouseover', function(d) {
+      .on('mouseenter', function(d) {
         var thisRow = d3.select(d3.select(this).node().parentNode);
-        addBottomRow(thisRow, true);
+        if (!thisRow.classed('jg-selected')) {
+          addBottomRow(thisRow, true);
+        }
+      })
+      .on('mouseleave', function(d) {
+        var thisRow = d3.select(d3.select(this).node().parentNode);
+        if (thisRow.classed('jg-selected')&&thisRow.classed('jg-mouseover')) {
+          addBottomRow(thisRow, true);
+        }
       })
       .on('click', function() {
         var thisRow = d3.select(d3.select(this).node().parentNode);
@@ -402,86 +410,110 @@ d3.kblHistory = function module () {
       })
   }
 
-  function addBottomRow(thisRow,/*optional*/isOver) { //FIXME : 팀용 이냐 감독용이냐에 따라 다른 기준 적용
+  function addBottomRow(thisRow,/*optional*/isOver) { //FIXME : 애니메이션 적용
     isOver = isOver || false;
+    var duration = 400;
     var appendHClicked = y.rangeBand()*2.25, appendHOvered = y.rangeBand() * 1;
     var appendH = isOver ? appendHOvered : appendHClicked;
-    var d = thisRow.datum();
-    //var thisRow = d3.select(d3.select(self).node().parentNode);
-
     var isSupp = thisRow.classed('jg-supp')
     var thisSvg = isSupp ? svgStack : svg;
-    var curIndex =  0;
-    thisSvg.selectAll('.jg-row').each(function(dd,ii) {
-      if (dd.key == d.key) curIndex  = ii;
-    })
-
-    var underRows = thisSvg.selectAll('.jg-row').filter(function(r,i) {
-      var pos = d3.transform(d3.select(this).attr('transform')).translate
-      return pos[1] >d3.transform(thisRow.attr('transform')).translate[1]
-    })
-    var underRowAvg = thisSvg.selectAll('.jg-row-avg').filter(function(r,i) {
-      return i > curIndex;
-    })
-
+    var thisRowPos = d3.transform(thisRow.attr('transform')).translate
+    var getIndexOfRow = function(row) {
+      var d = row.datum();
+      var curIndex = 0;
+      thisSvg.selectAll('.jg-row').each(function(dd,ii) {
+        if (dd.key == d.key) curIndex  = ii;
+      })
+      return curIndex;
+    }
     var moveUpDownFunc = function(selection, h) {
-      selection.each(function(){
+      selection.each(function(d){
+
         var pos = d3.transform(d3.select(this).attr('transform')).translate;
-        d3.select(this).attr('transform', d3.svg.transform().translate([pos[0], pos[1]+h]));
+        if (!('targetY' in d)) d.targetY = pos[1];
+        d.targetY += h;
+        d3.select(this).transition().duration(duration)
+          .attr('transform', d3.svg.transform().translate([pos[0], d.targetY]));
       })
     }
-    var shrinkExisting = function() {
-      var selectedRow = thisSvg.selectAll('.jg-row.jg-selected');
-      if (selectedRow.size() >0) {
-        selectedRow.selectAll('.jg-bottom-row').remove();
+    var curIndex = getIndexOfRow(thisRow);
+    var selectedRow = thisSvg.selectAll('.jg-row.jg-selected');
 
-        var selectedRowIndex = 0;
-        thisSvg.selectAll('.jg-row').each(function(dd,ii) {
-          if (dd.key == selectedRow.data()[0].key) selectedRowIndex  = ii;
+    if (selectedRow.size() > 0) {
+      var selectedIndex = getIndexOfRow(selectedRow);
+      var selectedRowPos = d3.transform(selectedRow.attr('transform')).translate
+      var wasOver = selectedRow.classed('jg-mouseover');
+      var appendHSelected = wasOver ? appendHOvered : appendHClicked;
+      var finalAppendH = -appendH;
+
+      selectedRow.selectAll('.jg-bottom-row').transition()
+        .duration(duration)
+        .style('opacity', 0)
+        .each('end', function(){
+          d3.select(this).remove();
         })
-        var selectedUnderRows = thisSvg.selectAll('.jg-row').filter(function(r,i) {
+
+      if (selectedIndex != curIndex) {
+        var underThisRows = thisSvg.selectAll('.jg-row').filter(function(r,i) {
           var pos = d3.transform(d3.select(this).attr('transform')).translate
-          return pos[1] >d3.transform(selectedRow.attr('transform')).translate[1]
+          return pos[1] > thisRowPos[1]
         })
-        var selectedUnderRowAvg = thisSvg.selectAll('.jg-row-avg').filter(function(r,i) {
-          return i > selectedRowIndex;
+        // 사이에 있던 것들은 위로!
+        underThisRows.call(moveUpDownFunc, appendH);
+
+        var underSelectedRows = thisSvg.selectAll('.jg-row').filter(function(r,i) {
+          var pos = d3.transform(d3.select(this).attr('transform')).translate
+          return  pos[1] > selectedRowPos[1]
         })
-        var appendH = selectedRow.classed('jg-mouseover') ? appendHOvered : appendHClicked;
-        selectedUnderRows.call(moveUpDownFunc, -appendH);
-        selectedUnderRowAvg.call(moveUpDownFunc, -appendH);
+        underSelectedRows.call(moveUpDownFunc, -appendHSelected);
+        finalAppendH = appendH-appendHSelected;
         selectedRow.classed({'jg-selected':false, 'jg-mouseover':false});
-        thisSvg.selectAll('.jg-row-avg.jg-selected').classed({'jg-selected':false});
-        if(isSupp) attrs.stackHeight -= appendH
-        else attrs.tableHeight -= appendH
-        d3.select(thisSvg.node().parentNode).attr('height', (isSupp? attrs.stackHeight : attrs.tableHeight))
+        thisRow.classed({'jg-selected':true, 'jg-mouseover':isOver});
+        thisRow.call(drawBottomRow, isSupp, isOver);
+      } else if (wasOver && !isOver) {
+        var underThisRows = thisSvg.selectAll('.jg-row').filter(function(r,i) {
+          var pos = d3.transform(d3.select(this).attr('transform')).translate
+          return pos[1] > thisRowPos[1]
+        })
+        finalAppendH = appendH-appendHSelected;
+        underThisRows.call(moveUpDownFunc, finalAppendH);
+        //selectedRow.classed({'jg-selected':false, 'jg-mouseover':false});
+        thisRow.classed({'jg-mouseover':false});
+        thisRow.call(drawBottomRow, isSupp, isOver);
+      } else { // 같을때는 없애기
+        var underThisRows = thisSvg.selectAll('.jg-row').filter(function(r,i) {
+          var pos = d3.transform(d3.select(this).attr('transform')).translate
+          return pos[1] > thisRowPos[1]
+        })
+        // 사이에 있던 것들은 위로!
+        finalAppendH = -appendHSelected
+        underThisRows.call(moveUpDownFunc, finalAppendH);
+        selectedRow.classed({'jg-selected':false, 'jg-mouseover':false});
       }
-    }
-    var drawOn = function () {
-      underRows.call(moveUpDownFunc, appendH);
-      underRowAvg.call(moveUpDownFunc, appendH);
+
+      if(isSupp) attrs.stackHeight += finalAppendH
+      else attrs.tableHeight += finalAppendH
+    }  else { // 기존에 없을때
+      // 새로 그리기
+      var underThisRows = thisSvg.selectAll('.jg-row').filter(function(r,i) {
+        var pos = d3.transform(d3.select(this).attr('transform')).translate
+        return pos[1] > thisRowPos[1]
+      })
+      underThisRows.call(moveUpDownFunc, appendH);
       if(isSupp) attrs.stackHeight += appendH
       else attrs.tableHeight += appendH
-      d3.select(thisSvg.node().parentNode)
-        .attr('height', (isSupp? attrs.stackHeight : attrs.tableHeight))
-      thisRow.classed({'jg-selected':true, 'jg-mouseover':isOver}) //thisRowAvg.classed({'jg-selected':true});
-        .call(drawBottomRow, d, isSupp, isOver);
+      thisRow.classed({'jg-selected':true, 'jg-mouseover':isOver})
+        .call(drawBottomRow, isSupp, isOver);
     }
 
-    if (thisRow.classed('jg-selected') && thisRow.classed('jg-mouseover') && !isOver) {
-      shrinkExisting();
-      drawOn();
-    } else if (thisRow.classed('jg-selected')  && isOver) {
-
-    } else if (thisRow.classed('jg-selected') ) { //off
-      shrinkExisting();
-    } else { //on
-      shrinkExisting();
-      drawOn();
-    }
+    d3.select(thisSvg.node().parentNode).transition()
+      .duration(400).attr('height', (isSupp? attrs.stackHeight : attrs.tableHeight))
   }
 
-  function drawBottomRow(selection, d, isSupp, isOver) {
+  function drawBottomRow(selection, isSupp, isOver) {
+    var d= selection.datum();
     var values = []
+    var duration = 400;
     d.values.forEach(function(curData) {
       var key = curData.key
       curData.values.forEach(function(coachValues) {
@@ -493,6 +525,11 @@ d3.kblHistory = function module () {
     var bottomRow = selection.append('g')
       .attr('class', 'jg-bottom-row')
       .attr('transform', d3.svg.transform().translate([margin.left, y.rangeBand()]))
+
+    bottomRow
+      .style('opacity', 0)
+      .transition().duration(duration)
+      .style('opacity', 1)
 
     var bottomCol = bottomRow.selectAll('.jg-bottom-col')
         .data(values)
@@ -563,15 +600,23 @@ d3.kblHistory = function module () {
     }))
 
     if(!isSupp) {
-      col.on('mouseover', function(d,i) {
-          mouseOverColFunc(d,i)
+      col.on('mouseenter', function(d,i) {
+          d3.select(this).call(mouseOverColFunc);
           var thisRow = d3.select(d3.select(this).node().parentNode);
-          addBottomRow(thisRow, true);
+          if (!thisRow.classed('jg-selected')) {
+            addBottomRow(thisRow, true);
+          }
         })
-        .on('mouseout', function() {
+        .on('mouseleave', function() {
           col.classed({'jg-hidden':false, 'jg-mouseover':false})
         })
-        .on('click', clickColFunc)
+        .on('click', function(d,i) {
+          var thisRow = d3.select(d3.select(this).node().parentNode);
+          if (thisRow.classed('jg-selected')&&thisRow.classed('jg-mouseover')) {
+            addBottomRow(thisRow);
+          }
+          d3.select(this).call(clickColFunc);
+        })
     }
 
     col.append('rect')
@@ -813,7 +858,8 @@ d3.kblHistory = function module () {
   }
 
 
-  function mouseOverColFunc(d,i) {
+  function mouseOverColFunc(selection) {
+    var d = selection.datum();
     var targetName = getTargetNameFromCol(d);
     var col = svg.select('.jg-table').selectAll('.jg-col');
     col.classed({'jg-mouseover':false, 'jg-hidden':false})
@@ -837,9 +883,9 @@ d3.kblHistory = function module () {
     suppRow.call(drawLabel, true)
   }
 
-  function clickColFunc(d,i) {
-
-    if (d3.select(this).classed('jg-clicked')) {
+  function clickColFunc(selection) {
+    var d = selection.datum();
+    if (selection.classed('jg-clicked')) {
       svg.selectAll('.jg-col').classed({'jg-mouseover':false})
       svg.selectAll('.jg-col').classed({'jg-clicked':false})
       //attrs.canvasHeight -= y.rangeBand();
