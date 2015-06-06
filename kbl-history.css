@@ -61,9 +61,12 @@ g.jg-col:nth-child(odd) rect{
 }
 */
 
+g.jg-col rect {
+ /*TODO: 색깔 변화할때 애니메이션 주기*/
+}
 
 g.jg-col.jg-mouseover rect{
-  fill : #fcd589;
+  fill : #fcd589; /* */
 }
 
 g.jg-col.jg-clicked rect {
@@ -124,16 +127,20 @@ circle.jg-link {
 
 
 g.jg-row-avg .jg-back {
-  fill : #e8e9e8;
-}
-g.jg-col:nth-child(odd) .jg-back{
   fill : #aaa;
 }
 
+g.jg-col .jg-back {
+  fill:#aaa;
+}
+/*
+g.jg-col:nth-child(odd) .jg-back{
+  fill : #aaa;
+}
 g.jg-col:nth-child(even) .jg-back{
   fill : #e8e9e8;
 }
-
+*/
 .jg-year-stat-brush .extent {
   fill : #ddd;
   opacity: .5;
