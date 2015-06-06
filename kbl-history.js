@@ -263,9 +263,11 @@ d3.kblHistory = function module () {
     function brushed() {
       var extent0 = yearStatBrush.extent(),
           extent1;
-      var roundedPos = function(pos) {
+      var roundedPos = function(pos) { // 718 -> 733
         var minDist = Number.POSITIVE_INFINITY, minIndex = -1;
-        x.range().forEach(function(d,i){
+        var range = x.range()
+        range.push(range[range.length-1]+x.rangeBand())
+        range.forEach(function(d,i){
           var dist = Math.abs(d-pos) ;
           if (dist< minDist) {
             minDist = dist;
@@ -805,8 +807,14 @@ d3.kblHistory = function module () {
       } else {
         thisSelection.call(drawArc)
         thisSelection.selectAll('.jg-rank-hand.jg-dup').remove(); //FIXME: 두개로 나눠지도로 수정.
-        thisSelection.call(drawHand, 'normal_rall', 'rall')
-        thisSelection.call(drawHand, 'normal_r', 'r')
+        if (d.normal_r >= d.normal_rall) {
+          thisSelection.call(drawHand, 'normal_rall', 'rall')
+          thisSelection.call(drawHand, 'normal_r', 'r')
+        } else {
+          thisSelection.call(drawHand, 'normal_r', 'r')
+          thisSelection.call(drawHand, 'normal_rall', 'rall')
+        }
+
       }
     })
   }
