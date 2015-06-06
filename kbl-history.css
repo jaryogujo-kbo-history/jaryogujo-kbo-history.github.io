@@ -62,11 +62,13 @@ g.jg-col:nth-child(odd) rect{
 */
 
 g.jg-col rect {
- /*TODO: 색깔 변화할때 애니메이션 주기*/
+ opacity: 0;
+ transition: opacity .8s;
 }
 
 g.jg-col.jg-mouseover rect{
   fill : #fcd589; /* */
+  opacity: 1.0;
 }
 
 g.jg-col.jg-clicked rect {
