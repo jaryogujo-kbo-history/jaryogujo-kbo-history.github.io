@@ -883,6 +883,7 @@ d3.kblHistory = function module () {
     var thisData = coachTeamData.filter(function(dd) {
       return dd.key == targetName;
     });
+    //TODO :  mouseover 표시하기!
     var suppRow = svgStack.selectAll('.jg-supp.jg-temp.jg-row')
         .data(thisData, function(d){ return d.key})
     suppRow.enter().append('g')
@@ -890,8 +891,12 @@ d3.kblHistory = function module () {
       .attr('transform', d3.svg.transform().translate(function(d) { return [0, y.rangeBand()] }))
 
     suppRow.exit().remove();
+
     suppRow.call(drawCols, true)
     suppRow.call(drawLabel, true)
+    setTimeout(function(){
+      suppRow.selectAll('.jg-col').classed({'jg-mouseover':true})
+    }, 100)
   }
 
   function clickColFunc(selection) {
@@ -913,6 +918,7 @@ d3.kblHistory = function module () {
       parentSvg.attr('height', attrs.stackHeight);
       svgStack.selectAll('.jg-supp.jg-temp.jg-row')
         .classed({'jg-temp':false, 'jg-fixed':true})
+        .selectAll('.jg-col').classed({'jg-mouseover':false})
       var size = svgStack.selectAll('.jg-fixed').size();
       svgStack.selectAll('.jg-supp.jg-fixed')
         .transition().duration(400)

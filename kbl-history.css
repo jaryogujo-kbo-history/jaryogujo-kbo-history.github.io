@@ -62,8 +62,10 @@ g.jg-col:nth-child(odd) rect{
 */
 
 g.jg-col rect {
+ fill:none;
  opacity: 0;
- transition: opacity .8s;
+ -webkit-transition: fill 1s, opacity 1s;
+ transition: fill 1s, opacity 1s;
 }
 
 g.jg-col.jg-mouseover rect{
