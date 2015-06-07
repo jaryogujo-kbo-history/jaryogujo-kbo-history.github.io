@@ -33,7 +33,9 @@ d3.kblHistory = function module () {
       height =  attrs.canvasHeight - margin.top - margin.bottom;
       dataInit(_data);
       if (!svg) {
-
+        var menuDiv = d3.select(this).append('div')
+          .attr('class', 'jg-menu')
+          .call(menuInit)
         var teamStatDiv = d3.select(this).append('div')
           .attr('class', 'jg-div-team-stat')
         svgTeamStat = teamStatDiv.append('svg')
@@ -81,6 +83,18 @@ d3.kblHistory = function module () {
       svgStack.call(svgStackInit);
     }); //end of each
   } // end of exports
+
+  function menuInit(selection) {
+    console.log(coachTeamData);
+    /*
+    <select>
+      <option value="volvo">Volvo</option>
+      <option value="saab">Saab</option>
+      <option value="opel">Opel</option>
+      <option value="audi">Audi</option>
+    </select>
+    */
+  }
 
   function dataInit(_data) {
     var yearExtent = d3.extent(_data, function(d) {return d.year})
@@ -502,6 +516,22 @@ d3.kblHistory = function module () {
           .call(drawBottomRow, isSupp, isOver);
       })
     }
+    var turnOnOffEmblem = function(selection) {
+      selection.each(function(d) {
+        var thisRow = d3.select(this)
+        if (thisRow.classed('jg-selected')) {
+          thisRow.selectAll('.jg-label > image')
+            .attr('xlink:href', function(d) {
+              return 'image/team/' + d.key + '_c.png'
+            })
+        } else {
+          thisRow.selectAll('.jg-label > image')
+            .attr('xlink:href', function(d) {
+              return 'image/team/' + d.key + '.png'
+            })
+        }
+      })
+    }
 
     //var curIndex = getIndexOfRow(thisRow);
     var selectedRow = thisSvg.selectAll('.jg-row.jg-selected');
@@ -516,7 +546,8 @@ d3.kblHistory = function module () {
         return d.key !== thisRow.datum().key;
       })
       if (dupRows.size() <= 0 ) {
-        thisRow.call(appendRowFunc);
+        thisRow.call(appendRowFunc)
+          .call(turnOnOffEmblem);
       }
 
       if (isOver) {
@@ -524,27 +555,33 @@ d3.kblHistory = function module () {
         dupRows.filter(function() {
           return d3.select(this).classed('jg-mouseover')
         }).call(removeRowFunc)
+        .call(turnOnOffEmblem)
       } else {
         // 클릭 된 거면 없애기
         dupRows.filter(function(){
           return !d3.select(this).classed('jg-mouseover')
         }).call(removeRowFunc)
+        .call(turnOnOffEmblem)
         // 마우스 오버 였으면 클릭으로 바꾸기
         dupRows.filter(function() {
           return d3.select(this).classed('jg-mouseover')
         }).call(appendRowFunc, true)
+        .call(turnOnOffEmblem)
         undupRows.filter(function() {
           return !d3.select(this).classed('jg-mouseover')
         }).call(removeRowFunc)
+        .call(turnOnOffEmblem)
       }
       // 클릭 된 거면 그냥 놔두기
       // 클릭 안 된거면 마우스 오버는 없애기
       undupRows.filter(function() {
         return d3.select(this).classed('jg-mouseover')
       }).call(removeRowFunc)
+      .call(turnOnOffEmblem)
     }  else { // 기존에 없을때
       // 새로 그리기
-      thisRow.call(appendRowFunc);
+      thisRow.call(appendRowFunc)
+      .call(turnOnOffEmblem);
     }
 
     d3.select(thisSvg.node().parentNode).transition()
@@ -958,7 +995,7 @@ d3.kblHistory = function module () {
         .filter(function(d){return suppRow.datum().key == d.key})
 
       if (exist.size()>0) {
-        exist.classed({'jg-removing':true, 'jg-fixed':false})
+        exist.classed({'jg-supp':false, 'jg-fixed':false, 'jg-removing':true, 'jg-fixed':false})
         .transition().duration(duration)
         .style('opacity', 0)
         .each('end', function(){
