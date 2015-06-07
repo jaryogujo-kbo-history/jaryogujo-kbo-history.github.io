@@ -419,7 +419,8 @@ d3.kblHistory = function module () {
     var appendH = isOver ? appendHOvered : appendHClicked;
     var isSupp = thisRow.classed('jg-supp')
     var thisSvg = isSupp ? svgStack : svg;
-    var thisRowPos = d3.transform(thisRow.attr('transform')).translate
+    //var thisRowPos = d3.transform(thisRow.attr('transform')).translate
+    /*
     var getIndexOfRow = function(row) {
       var d = row.datum();
       var curIndex = 0;
@@ -427,7 +428,7 @@ d3.kblHistory = function module () {
         if (dd.key == d.key) curIndex  = ii;
       })
       return curIndex;
-    }
+    }*/
     var moveUpDownFunc = function(selection, h) {
       selection.each(function(d){
 
@@ -438,74 +439,96 @@ d3.kblHistory = function module () {
           .attr('transform', d3.svg.transform().translate([pos[0], d.targetY]));
       })
     }
-    var curIndex = getIndexOfRow(thisRow);
+    var removeRowFunc = function(selection) {
+      selection.each(function(d) {
+        var thisRow = d3.select(this)
+        var thisRowPos = d3.transform(d3.select(this).attr('transform')).translate;
+        var wasOver = thisRow.classed('jg-mouseover');
+        var appendHSelected = wasOver ? appendHOvered : appendHClicked;
+        var underThisRows = thisSvg.selectAll('.jg-row').filter(function(r,i) {
+          var pos = d3.transform(d3.select(this).attr('transform')).translate
+          return pos[1] > thisRowPos[1]
+        })
+        // 사이에 있던 것들은 위로!
+        underThisRows.call(moveUpDownFunc, -appendHSelected);
+        if(isSupp) attrs.stackHeight -= appendHSelected
+        else attrs.tableHeight -= appendHSelected
+        thisRow.selectAll('.jg-bottom-row').transition()
+          .duration(duration)
+          .style('opacity', 0)
+          .each('end', function(){
+            d3.select(this).remove();
+          })
+        thisRow.classed({'jg-selected':false, 'jg-mouseover':false});
+      })
+    }
+
+    var appendRowFunc = function(selection, wasOver) {
+      selection.each(function(d) {
+        var thisRow = d3.select(this)
+        var thisRowPos = d3.transform(d3.select(this).attr('transform')).translate;
+        var underThisRows = thisSvg.selectAll('.jg-row').filter(function(r,i) {
+          var pos = d3.transform(d3.select(this).attr('transform')).translate
+          return pos[1] > thisRowPos[1]
+        })
+        var appendHSelected = wasOver ? appendHOvered : 0;
+        var finalAppendH = appendH-appendHSelected
+        underThisRows.call(moveUpDownFunc, finalAppendH);
+        if(isSupp) attrs.stackHeight += finalAppendH
+        else attrs.tableHeight += finalAppendH
+        thisRow.selectAll('.jg-bottom-row').transition()
+          .duration(duration)
+          .style('opacity', 0)
+          .each('end', function(){
+            d3.select(this).remove();
+          })
+        thisRow.classed({'jg-selected':true, 'jg-mouseover':isOver})
+          .call(drawBottomRow, isSupp, isOver);
+      })
+    }
+
+    //var curIndex = getIndexOfRow(thisRow);
     var selectedRow = thisSvg.selectAll('.jg-row.jg-selected');
-
-    if (selectedRow.size() > 0) {
-      var selectedIndex = getIndexOfRow(selectedRow);
-      var selectedRowPos = d3.transform(selectedRow.attr('transform')).translate
-      var wasOver = selectedRow.classed('jg-mouseover');
-      var appendHSelected = wasOver ? appendHOvered : appendHClicked;
-      var finalAppendH = -appendH;
-
-      selectedRow.selectAll('.jg-bottom-row').transition()
-        .duration(duration)
-        .style('opacity', 0)
-        .each('end', function(){
-          d3.select(this).remove();
-        })
-
-      if (selectedIndex != curIndex) {
-        var underThisRows = thisSvg.selectAll('.jg-row').filter(function(r,i) {
-          var pos = d3.transform(d3.select(this).attr('transform')).translate
-          return pos[1] > thisRowPos[1]
-        })
-        // 사이에 있던 것들은 위로!
-        underThisRows.call(moveUpDownFunc, appendH);
-
-        var underSelectedRows = thisSvg.selectAll('.jg-row').filter(function(r,i) {
-          var pos = d3.transform(d3.select(this).attr('transform')).translate
-          return  pos[1] > selectedRowPos[1]
-        })
-        underSelectedRows.call(moveUpDownFunc, -appendHSelected);
-        finalAppendH = appendH-appendHSelected;
-        selectedRow.classed({'jg-selected':false, 'jg-mouseover':false});
-        thisRow.classed({'jg-selected':true, 'jg-mouseover':isOver});
-        thisRow.call(drawBottomRow, isSupp, isOver);
-      } else if (wasOver && !isOver) {
-        var underThisRows = thisSvg.selectAll('.jg-row').filter(function(r,i) {
-          var pos = d3.transform(d3.select(this).attr('transform')).translate
-          return pos[1] > thisRowPos[1]
-        })
-        finalAppendH = appendH-appendHSelected;
-        underThisRows.call(moveUpDownFunc, finalAppendH);
-        //selectedRow.classed({'jg-selected':false, 'jg-mouseover':false});
-        thisRow.classed({'jg-mouseover':false});
-        thisRow.call(drawBottomRow, isSupp, isOver);
-      } else { // 같을때는 없애기
-        var underThisRows = thisSvg.selectAll('.jg-row').filter(function(r,i) {
-          var pos = d3.transform(d3.select(this).attr('transform')).translate
-          return pos[1] > thisRowPos[1]
-        })
-        // 사이에 있던 것들은 위로!
-        finalAppendH = -appendHSelected
-        underThisRows.call(moveUpDownFunc, finalAppendH);
-        selectedRow.classed({'jg-selected':false, 'jg-mouseover':false});
+    if (selectedRow.size() > 0) { // 이미 존재 할 때
+      //var selectedIndex = getIndexOfRow(selectedRow);
+      // 중복 인 것
+      var dupRows = selectedRow.filter(function(d) {
+        return d.key === thisRow.datum().key;
+      })
+      // 중복 아닌 것
+      var undupRows = selectedRow.filter(function(d) {
+        return d.key !== thisRow.datum().key;
+      })
+      if (dupRows.size() <= 0 ) {
+        thisRow.call(appendRowFunc);
       }
 
-      if(isSupp) attrs.stackHeight += finalAppendH
-      else attrs.tableHeight += finalAppendH
+      if (isOver) {
+        // 마우스 오버 였으면 클릭으로 바꾸기
+        dupRows.filter(function() {
+          return d3.select(this).classed('jg-mouseover')
+        }).call(removeRowFunc)
+      } else {
+        // 클릭 된 거면 없애기
+        dupRows.filter(function(){
+          return !d3.select(this).classed('jg-mouseover')
+        }).call(removeRowFunc)
+        // 마우스 오버 였으면 클릭으로 바꾸기
+        dupRows.filter(function() {
+          return d3.select(this).classed('jg-mouseover')
+        }).call(appendRowFunc, true)
+        undupRows.filter(function() {
+          return !d3.select(this).classed('jg-mouseover')
+        }).call(removeRowFunc)
+      }
+      // 클릭 된 거면 그냥 놔두기
+      // 클릭 안 된거면 마우스 오버는 없애기
+      undupRows.filter(function() {
+        return d3.select(this).classed('jg-mouseover')
+      }).call(removeRowFunc)
     }  else { // 기존에 없을때
       // 새로 그리기
-      var underThisRows = thisSvg.selectAll('.jg-row').filter(function(r,i) {
-        var pos = d3.transform(d3.select(this).attr('transform')).translate
-        return pos[1] > thisRowPos[1]
-      })
-      underThisRows.call(moveUpDownFunc, appendH);
-      if(isSupp) attrs.stackHeight += appendH
-      else attrs.tableHeight += appendH
-      thisRow.classed({'jg-selected':true, 'jg-mouseover':isOver})
-        .call(drawBottomRow, isSupp, isOver);
+      thisRow.call(appendRowFunc);
     }
 
     d3.select(thisSvg.node().parentNode).transition()
