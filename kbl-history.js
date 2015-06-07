@@ -7,7 +7,6 @@ d3.kblHistory = function module () {
     isTeamMode : true,
     blockColExtent : [],
   };//end of attributes
-  var modes =  ['team', 'coach'];
   var margin = {top:20, right : 10, bottom : 10, left : 70}
   var x = d3.scale.ordinal(), y=d3.scale.ordinal(),
     yearYR=d3.scale.linear().rangeRound([attrs.yearStatHeight-margin.top, 0]),
@@ -85,7 +84,28 @@ d3.kblHistory = function module () {
   } // end of exports
 
   function menuInit(selection) {
-    console.log(coachTeamData);
+    var coaches = coachTeamData.map(function(d){return d.key})
+    coaches.splice(0,0, '--특정 감독 살펴보기--')
+    var dropdown = selection.append('select')
+      .attr('class', 'jg-select')
+
+    var options = dropdown.selectAll('option')
+        .data(coaches)
+      .enter().append('option')
+      .property(function(d){ return {'value':d}})
+      .text(function(d){return d})
+
+    dropdown.on('change', function() {
+      var selectedIndex = d3.select(this).property('selectedIndex');
+      if (selectedIndex==0) {
+
+      } else {
+        var d = options[0][selectedIndex].__data__;
+        console.log(d)
+      }
+
+    })
+
     /*
     <select>
       <option value="volvo">Volvo</option>
