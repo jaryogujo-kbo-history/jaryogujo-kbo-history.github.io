@@ -100,20 +100,10 @@ d3.kblHistory = function module () {
       if (selectedIndex==0) {
 
       } else {
-        var d = options[0][selectedIndex].__data__;
-        console.log(d)
+        var coachName = options[0][selectedIndex].__data__;
+        selectCol(coachName);
       }
-
     })
-
-    /*
-    <select>
-      <option value="volvo">Volvo</option>
-      <option value="saab">Saab</option>
-      <option value="opel">Opel</option>
-      <option value="audi">Audi</option>
-    </select>
-    */
   }
 
   function dataInit(_data) {
@@ -948,24 +938,17 @@ d3.kblHistory = function module () {
     })
   }
 
-  function mouseOverColFunc(selection) {
-    var getTargetNameFromCol = function(d) {
-      return  d[0].first_coach_name
-    }
-    var d = selection.datum();
-    var targetName = getTargetNameFromCol(d);
+  function selectCol(coachName) {
     var col = svg.select('.jg-table').selectAll('.jg-col');
     col.classed({'jg-mouseover':false, 'jg-hidden':false})
-    var overed = col.filter(function(d) {return getTargetNameFromCol(d) === targetName})
+    var overed = col.filter(function(d) {return  d[0].first_coach_name === coachName})
       .classed({'jg-mouseover':true})
     col.filter(function() {
       return !(d3.select(this).classed('jg-mouseover'))
     }).classed({'jg-hidden':true})
-
     var thisData = coachTeamData.filter(function(dd) {
-      return dd.key == targetName;
+      return dd.key == coachName;
     });
-    //TODO :  mouseover 표시하기!
     var suppRow = svgStack.selectAll('.jg-supp.jg-temp.jg-row')
         .data(thisData, function(d){ return d.key})
     suppRow.enter().append('g')
@@ -979,6 +962,12 @@ d3.kblHistory = function module () {
     setTimeout(function(){
       suppRow.selectAll('.jg-col').classed({'jg-mouseover':true})
     }, 100)
+  }
+
+  function mouseOverColFunc(selection) {
+    var d = selection.datum();
+    var coachName = d[0].first_coach_name
+    selectCol(coachName)
   }
 
   function clickColFunc(selection) {
