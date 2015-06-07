@@ -20,7 +20,7 @@ d3.kblHistory = function module () {
     'BG':'빙그레','HH':'한화','SK':'SK','NS':'넥센','NC':'NC','SB':'쌍방울',
     'CB':'청보','TP':'태평양','HD':'현대'})
   var svg, svgYearStat, svgStack, svgTeamStat;
-  var teamCoachData, coachTeamData, curMode = modes[0], suppData=[];
+  var teamCoachData, coachTeamData, suppData=[];
   var width, height;
   var color = d3.scale.category10();
   var yearStatBrush, curYearExtent, yearData;
@@ -928,24 +928,10 @@ d3.kblHistory = function module () {
     })
   }
 
-  function getLinkData(selectedCol, targetName, linkData) {
-    selectedCol
-      .each(function(d, i) {
-        var thisCol = d3.select(this)
-        var point = {}
-        point.x = thisCol.datum().x;
-        point.y = d3.select(thisCol.node().parentNode).datum().y;
-        point.width = thisCol.datum().width;
-        linkData.push(point);
-      }) //end of each
-  }
-
-  function getTargetNameFromCol(d) {
-    return (curMode == modes[0] ? d[0].first_coach_name : d[0].final_team_code)
-  }
-
-
   function mouseOverColFunc(selection) {
+    var getTargetNameFromCol = function(d) {
+      return  d[0].first_coach_name
+    }
     var d = selection.datum();
     var targetName = getTargetNameFromCol(d);
     var col = svg.select('.jg-table').selectAll('.jg-col');
@@ -1021,88 +1007,6 @@ d3.kblHistory = function module () {
     }
   }/// end of clickColFunc;
 
-  function drawDiagonals(linkDataArr, isTotal) {
-    linkDataArr.forEach(function(linkData) {
-      linkData.values.sort(function(a,b) { return a.x - b.x;})
-      linkData.values = linkData.values.reduce(function(pre,cur,i,arr) {
-        if (i < arr.length-1) {
-          var link = {};
-          link.source = {}
-          link.source.x = cur.x+ cur.width;
-          link.source.y = cur.y+ y.rangeBand()*.5;
-          pre.push(link);
-        }
-
-        if (i>0) {
-          var lastLink = pre[i-1];
-          lastLink.target = {}
-          lastLink.target.x = cur.x;
-          lastLink.target.y = cur.y+y.rangeBand()*.5;
-        }
-
-        return pre;
-      }, []);
-    })
-
-    var diagonal = d3.svg.diagonal()
-    .source(function(d) { return {"x":d.source.y, "y":d.source.x}; })
-    .target(function(d) { return {"x":d.target.y, "y":d.target.x}; })
-    .projection(function(d) { return [d.y, d.x]; });
-
-    var links = svg.select('.jg-table')
-      .selectAll('.jg-links')
-        .data(linkDataArr, function(d){return d.key})
-
-      links.enter().append('g')
-      .attr('class', 'jg-links')
-      .style('fill', function(d,i){return color(i)})
-      .style('stroke', function(d,i){return color(i)})
-
-      links.exit().remove();
-
-    var linkPath = links.selectAll('.jg-link')
-        .data(function(d){return d.values})
-
-    linkPath.enter().append('path')
-      .attr("class", "jg-link")
-      .attr("d", diagonal);
-
-    linkPath.exit().remove();
-
-    var linkPoint = links.selectAll('circle.jg-link')
-        .data(function(d){
-          return d.values.reduce(function(pre, cur){
-            pre.push({x:cur.source.x, y:cur.source.y})
-            pre.push({x:cur.target.x, y:cur.target.y})
-            return pre;
-          }, [])
-        })
-
-    linkPoint.enter().append('circle')
-      .attr("class", "jg-link")
-      .attr('cx', function(d){return d.x})
-      .attr('cy', function(d){return d.y})
-      .attr('r', 4);
-    linkPoint.exit().remove();
-  }// end of drawDiagonals
-
-  function drawRadioButton(selection) {
-    var menu = selection.append('div')//d3.select(this).append('div')
-      .attr('class', 'jg-menu')
-
-    var radio = menu.selectAll('.jg-mode')
-        .data(modes)
-      .enter().append('input')
-      .attr('class', 'jg-mode')
-      .attr('type', 'radio')
-      .attr('name', 'jg-mode')
-      .property('value', function(d){return d})
-      .property('checked', function(d,i) {return (i===0 ? true : false)})
-      .on('click', function(d) {
-
-      })
-    return selection;
-  }
 
   function nestFunc(key1, key2 ) {
     return d3.nest()
