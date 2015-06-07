@@ -900,6 +900,7 @@ d3.kblHistory = function module () {
   }
 
   function clickColFunc(selection) {
+    var duration = 400
     var d = selection.datum();
     if (selection.classed('jg-clicked')) {
       svg.selectAll('.jg-col').classed({'jg-mouseover':false})
@@ -912,21 +913,35 @@ d3.kblHistory = function module () {
       var clicked = svg.selectAll('.jg-col.jg-mouseover')//.filter(function(d) {return d[0].first_coach_name === thisCoach})
         .classed({'jg-clicked':true})//, 'jg-mouseover':false})
 
-      var parentSvg = d3.select(svgStack.node().parentNode) //FIXME : 중복 감독 추가시 위로 올리기
-      //var curHeight = parentSvg.attr('height')
-      attrs.stackHeight += y.rangeBand();
-      parentSvg.attr('height', attrs.stackHeight);
+      var suppRow = svgStack.selectAll('.jg-supp.jg-temp.jg-row')
+
+      var exist = svgStack.selectAll('.jg-fixed.jg-row')
+        .filter(function(d){return suppRow.datum().key == d.key})
+
+      if (exist.size()>0) {
+        exist.classed({'jg-removing':true, 'jg-fixed':false})
+        .transition().duration(duration)
+        .style('opacity', 0)
+        .each('end', function(){
+            d3.select(this).remove()
+        })
+      }
+      else {
+        var parentSvg = d3.select(svgStack.node().parentNode)
+        attrs.stackHeight += y.rangeBand();
+        parentSvg.attr('height', attrs.stackHeight);
+      }
+
       svgStack.selectAll('.jg-supp.jg-temp.jg-row')
         .classed({'jg-temp':false, 'jg-fixed':true})
         .selectAll('.jg-col').classed({'jg-mouseover':false})
       var size = svgStack.selectAll('.jg-fixed').size();
       svgStack.selectAll('.jg-supp.jg-fixed')
-        .transition().duration(400)
+        .transition().duration(duration)
         .attr("transform", d3.svg.transform().translate(function(d,i) {
           var dy =  (y.rangeBand())+ ((size-i)*y.rangeBand());
           return [0,dy]
         }))
-
     }
   }/// end of clickColFunc;
 
