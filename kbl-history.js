@@ -385,15 +385,13 @@ d3.kblHistory = function module () {
 
 
   function drawLabel(row, isSupp) {
-    row.selectAll('.jg-label')
+    var label = row.selectAll('.jg-label')
         .data(function(d) {return [d]})
-      .enter().append('text')
+      .enter().append('g')
       .attr('class','jg-label')
-      .attr('text-anchor', 'end')
-      .attr('x', margin.left*.95)
-      .attr('y', function(d){return y.rangeBand()*.5  }) //+ margin.top
-      .attr('dy', '.35em')
-      .text(function(d) {return (!isSupp ? teamMap.get(d.key): d.key)})
+      .attr('transform', d3.svg.transform().translate(function(d,i) {
+        return [0, 0]
+      }))
       .on('mouseenter', function(d) {
         var thisRow = d3.select(d3.select(this).node().parentNode);
         if (!thisRow.classed('jg-selected')) {
@@ -410,9 +408,27 @@ d3.kblHistory = function module () {
         var thisRow = d3.select(d3.select(this).node().parentNode);
         addBottomRow(thisRow);
       })
+   if (!isSupp) {
+     label.append('image')
+        .attr('xlink:href', function(d) {
+          return 'image/team/' + d.key + '.png'
+        })
+        .attr('width', '37')
+        .attr('height', '29')
+        //<image xlink:href="/files/2917/fxlogo.png" x="0" y="0" height="100" width="100" />
+   }
+
+   label.append('text')
+      .attr('text-anchor', 'end')
+      .attr('x', margin.left*.95)
+      .attr('y', y.rangeBand()*.5)
+      //.attr('y', function(d){return y.rangeBand()*.5  }) //+ margin.top
+      .attr('dy', '.35em')
+      .text(function(d) {return (!isSupp ? teamMap.get(d.key): d.key)})
+
   }
 
-  function addBottomRow(thisRow,/*optional*/isOver) { //FIXME : 애니메이션 적용
+  function addBottomRow(thisRow,/*optional*/isOver) {
     isOver = isOver || false;
     var duration = 400;
     var appendHClicked = y.rangeBand()*2.25, appendHOvered = y.rangeBand() * 1;
