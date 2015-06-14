@@ -73,6 +73,11 @@ g.jg-col.jg-mouseover rect{
   opacity: 1.0;
 }
 
+g.jg-col.jg-clicked rect{
+  fill : #F6C18C; /* */
+  opacity: 1.0;
+}
+
 g.jg-col.jg-clicked rect {
   /*fill : #f6c18c;*/
 }

@@ -101,7 +101,8 @@ d3.kblHistory = function module () {
 
       } else {
         var coachName = options[0][selectedIndex].__data__;
-        selectCol(coachName);
+        svg.selectAll('.jg-col').classed({'jg-clicked':false})
+        selectCol(coachName, false);
       }
     })
   }
@@ -385,11 +386,6 @@ d3.kblHistory = function module () {
     .attr('class', 'jg-table')
     .attr('transform', d3.svg.transform().translate(function() {return [0,margin.top]})) //margin.left
 
-    table.call(drawRows)
-  }
-
-
-  function drawRows(table) {
 
     var row = table.selectAll('g.jg-row')
       .data(function(d) {return d}, function(d) { return d.key}) // => team level
@@ -400,14 +396,23 @@ d3.kblHistory = function module () {
       return [0, d.y]
     }))
     .on('mouseenter', function(d){
-      svgYearStat.call(drawLineYearly, d)
-    })
+      svgYearStat.call(drawLineYearly, d) //FIXME : row.on('over.yearStat')yearStatBrush에 연동
+    }).call(drawLabel)
+    .call(drawCols)
+
+    //table.call(drawRows)
+  }
+
+
+  function drawRows(table) {
+
+
 
     //.on('mouseover')
 
     //row.call(drawAvg, curYearExtent);
-    row.call(drawLabel);
-    row.call(drawCols);
+    //row.call(drawLabel);
+    //row.call(drawCols);
   }
 
 
@@ -452,7 +457,7 @@ d3.kblHistory = function module () {
       //.attr('y', function(d){return y.rangeBand()*.5  }) //+ margin.top
       .attr('dy', '.35em')
       .text(function(d) {return (!isSupp ? teamMap.get(d.key): d.key)})
-
+    return row;
   }
 
   function addBottomRow(thisRow,/*optional*/isOver) {
@@ -724,6 +729,7 @@ d3.kblHistory = function module () {
 
     col.call(drawRankArc)
     //col.call(drawRankLine);
+    return row;
   }
 
 
@@ -941,13 +947,14 @@ d3.kblHistory = function module () {
     })
   }
 
-  function selectCol(coachName) {
+  function selectCol(coachName, isOver) {
+    isOver = isOver || false;
     var col = svg.select('.jg-table').selectAll('.jg-col');
     col.classed({'jg-mouseover':false, 'jg-hidden':false})
     var overed = col.filter(function(d) {return  d[0].first_coach_name === coachName})
-      .classed({'jg-mouseover':true})
+      .classed({'jg-mouseover':isOver, 'jg-clicked':!isOver})
     col.filter(function() {
-      return !(d3.select(this).classed('jg-mouseover'))
+      return !(d3.select(this).classed('jg-mouseover')) && !(d3.select(this).classed('jg-clicked'))
     }).classed({'jg-hidden':true})
     var thisData = coachTeamData.filter(function(dd) {
       return dd.key == coachName;
@@ -963,14 +970,14 @@ d3.kblHistory = function module () {
     suppRow.call(drawCols, true)
     suppRow.call(drawLabel, true)
     setTimeout(function(){
-      suppRow.selectAll('.jg-col').classed({'jg-mouseover':true})
+      suppRow.selectAll('.jg-col').classed({'jg-mouseover':isOver, 'jg-clicked':!isOver})
     }, 100)
   }
 
   function mouseOverColFunc(selection) {
     var d = selection.datum();
     var coachName = d[0].first_coach_name
-    selectCol(coachName)
+    selectCol(coachName, true)
   }
 
   function clickColFunc(selection) {
