@@ -203,8 +203,11 @@ d3.kblHistory = function module () {
         return [x(d.key), 0]
       }));
 
+
     col.call(drawYearStatcol)
+
     gPoint.call(drawBrushYearStat)
+    curYearExtent = turnRangeToExtent(yearStatBrush.extent());
     return svg;
   }
 
@@ -401,7 +404,7 @@ d3.kblHistory = function module () {
     })
 
     //.on('mouseover')
-    curYearExtent = turnRangeToExtent(yearStatBrush.extent());
+
     //row.call(drawAvg, curYearExtent);
     row.call(drawLabel);
     row.call(drawCols);
