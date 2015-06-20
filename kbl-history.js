@@ -443,10 +443,10 @@ d3.kblHistory = function module () {
    if (!isSupp) {
      label.append('image')
         .attr('xlink:href', function(d) {
-          return 'image/team/' + d.key + '.png'
+          return 'image/team/' + d.key + '@2x.png'
         })
-        .attr('width', '37')
-        .attr('height', '29')
+        .attr('width', '27')
+        .attr('height', '22')
         //<image xlink:href="/files/2917/fxlogo.png" x="0" y="0" height="100" width="100" />
    }
 
@@ -540,12 +540,12 @@ d3.kblHistory = function module () {
         if (thisRow.classed('jg-selected')) {
           thisRow.selectAll('.jg-label > image')
             .attr('xlink:href', function(d) {
-              return 'image/team/' + d.key + '_c.png'
+              return 'image/team/' + d.key + '_c@2x.png'
             })
         } else {
           thisRow.selectAll('.jg-label > image')
             .attr('xlink:href', function(d) {
-              return 'image/team/' + d.key + '.png'
+              return 'image/team/' + d.key + '@2x.png'
             })
         }
       })
@@ -876,6 +876,9 @@ d3.kblHistory = function module () {
         .attr('transform', d3.svg.transform().translate(function(d,i){
           return [i*x.rangeBand(), 0]
         }))
+
+      //TODO : 플레이 오프 및 한국시리즈 결과 반영
+
       rank.append('text')
         .attr('dx', '.175em')
         .attr('dy', '.9em')
