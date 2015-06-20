@@ -878,11 +878,20 @@ d3.kblHistory = function module () {
         }))
 
       //TODO : 플레이 오프 및 한국시리즈 결과 반영
-
+      rank.append('circle')
+        .each(function(d) {
+          d3.select(this).classed({'playoff': (d.playoff==1),
+          'korean-season':(d.champion>0),
+          'champion':(d.champion==1)})
+        })
+        .attr('cx', radius*.5).attr('cy', radius*.5+1)
+        .attr('r', radius*.5+1)
+        //.attr('height', radius)
+      //'korean-season':(d.champion>0), 'champion':(d.champion==1), }
       rank.append('text')
         .attr('dx', '.175em')
         .attr('dy', '.9em')
-        .text(function(d) {return d.rank})
+        .text(function(d) {return d.season_rank})
     }
 
     var clock = col.selectAll('.jg-rank-clock')

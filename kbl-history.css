@@ -35,11 +35,25 @@ div.jg-chart {
 }
 
 
-.jg-rank-text rect{
+.jg-rank-text > circle{
   stroke : none;
+  fill : none;
 }
 
-.jg-rank-text text{
+.jg-rank-text > circle.playoff{
+  stroke : #bbb ;
+  stroke-width : 1px;
+  fill-opacity : .55;
+}
+.jg-rank-text > circle.korean-season{
+  fill : #1698d8;
+}
+
+.jg-rank-text > circle.champion{
+  fill : #f6b900;
+}
+
+.jg-rank-text > text{
   fill : #bbb;/*#444;*/
 }
 
@@ -47,9 +61,11 @@ g.jg-col {
   cursor : pointer;
 }
 
+/*
 g.jg-col rect {
   fill : none;
 }
+*/
 
 /*
 g.jg-col:nth-child(even) rect{
@@ -61,7 +77,7 @@ g.jg-col:nth-child(odd) rect{
 }
 */
 
-g.jg-col rect {
+g.jg-col > rect {
  fill:none;
  opacity: 0;
  -webkit-transition: fill 1s, opacity 1s;
