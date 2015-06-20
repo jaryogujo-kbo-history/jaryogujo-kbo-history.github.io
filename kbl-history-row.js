@@ -1,15 +1,18 @@
 d3.kblHistoryRow = function module () {
   var attrs = {
     isSupp : false,
+    isAvg : false,
     width : 20,
     height : 20,//y : null,
     x : null,
+    thetaR : null,
+    thetaRall : null,
     //y : 0,
     svg : null,
     teamMap : null,
     isInteractive : true
   } //FIXME : 시작-마지막 연도 + 사이즈 되면 알아서 되도록
-
+  var emblemPath = 'image/team/'
   var dispatch = d3.dispatch("colOver", "colClick", 'rowOver')//, "rowOver", "rowClick"); // .hide .show
   /*
   dispatch.load(value);
@@ -72,11 +75,10 @@ d3.kblHistoryRow = function module () {
     if (!attrs.isSupp) {
      label.append('image')
         .attr('xlink:href', function(d) {
-          return 'image/team/' + d.key + '.png'
+          return emblemPath + d.key + '@2x.png'
         })
-        .attr('width', '37')
-        .attr('height', '29')
-      //<image xlink:href="/files/2917/fxlogo.png" x="0" y="0" height="100" width="100" />
+        .attr('width', '27')
+        .attr('height', '22')
     }
 
    label.append('text')
@@ -161,12 +163,12 @@ d3.kblHistoryRow = function module () {
         if (thisRow.classed('jg-selected')) {
           thisRow.selectAll('.jg-label > image')
             .attr('xlink:href', function(d) {
-              return 'image/team/' + d.key + '_c.png'
+              return emblemPath + d.key + '@2x_c.png'
             })
         } else {
           thisRow.selectAll('.jg-label > image')
             .attr('xlink:href', function(d) {
-              return 'image/team/' + d.key + '.png'
+              return emblemPath + d.key + '@2x.png'
             })
         }
       })
@@ -345,8 +347,16 @@ d3.kblHistoryRow = function module () {
     })
     .attr('height', attrs.height)
 
+    //TODO : rakarc 그리도록 수정
+    var arc = d3.kblHistoryArc()
+      .isSupp(attrs.isSupp)
+      .isAvg(attrs.isAvg)
+      .width(attrs.width)
+      .height(attrs.height)
+      .thetaR(attrs.thetaR)
+      .thetaR(attrs.thetaRall)
 
-    col.call(drawRankArc)
+    col.call(arc);
     //col.call(drawRankLine);
   }
   //그리기

@@ -12,20 +12,18 @@ d3.kblHistoryArc = function () {
   var lineX = d3.scale.ordinal(), lineY = d3.scale.ordinal()
   var radius;
 
-  var exports = function (_selection) {
+  var exports = function (_selection) { // _selection = col;
+    radius = attrs.width * .45;
     lineX.domain(d3.range(1,attrs.maxRank+1))
       .rangePoints([0,attrs.width])
-    lineY.domain(d3.range(1,maxRank+1))
+    lineY.domain(d3.range(1,attrs.maxRank+1))
       .rangePoints([0,attrs.height])
     radus = attrs.width*.45;
-    _selection.forEach(function(_data) {
-
-      d3.select(this).call(drawRankArc)
-    });
+    _selection.call(drawRankArc);
   }
 
 
-  function drawRankArc(col, isAvg) {
+  function drawRankArc(col) {
     var isAvg = attrs.isAvg;
     if (!isAvg) {
       var rank = col.selectAll('.jg-rank-text')
@@ -35,11 +33,23 @@ d3.kblHistoryArc = function () {
         .attr('transform', d3.svg.transform().translate(function(d,i){
           return [i*attrs.width, 0]
         }))
+
+      rank.append('circle')
+        .each(function(d) {
+          d3.select(this).classed({'playoff': (d.playoff==1),
+          'korean-season':(d.champion>0),
+          'champion':(d.champion==1)})
+        })
+        .attr('cx', radius*.5).attr('cy', radius*.5+1)
+        .attr('r', radius*.5+1)
+
       rank.append('text')
         .attr('dx', '.175em')
         .attr('dy', '.9em')
-        .text(function(d) {return d.rank}) //FIXME : 나중에 고침
+        .text(function(d) {return d.season_rank}) //FIXME : 나중에 고침
     }
+
+
 
     var clock = col.selectAll('.jg-rank-clock')
         .data(function(d){return d;})
@@ -73,35 +83,6 @@ d3.kblHistoryArc = function () {
   }
 
 
-  function drawRankLine(col) {
-    var line = col.selectAll('.jg-rank-line')
-        .data(function(d){return d;})
-
-      line.enter().append('g')
-      .attr('class', 'jg-rank-line')
-      .attr('transform', d3.svg.transform().translate(function(d,i) {return [i*attrs.width, 0]}))
-
-    var drawLine = function(selection, key, className) {
-      line.append('line')
-        .attr('class', 'jg-rank-'+className)
-        .attr('x1', function(d){return lineX(d[key])})
-        .attr('x2', function(d){return lineX(d[key])})
-        .attr('y1', 0)
-        .attr('y2', attrs.height)
-      line.append('line')
-        .attr('class', 'jg-rank-'+className)
-        .attr('y1', function(d){return lineY(d[key])})
-        .attr('y2', function(d){return lineY(d[key])})
-        .attr('x1', 0)
-        .attr('x2', attrs.width)
-      return selection
-    }
-
-    line.call(drawLine, 'rall_rank', 'rall')
-      .call(drawLine, 'r_rank', 'r')
-      .call(drawLine, 'rank', 'wa')
-  }
-
   function drawHand (selection, key, className) {
     var hand = selection.selectAll('.jg-rank-hand.jg-'+className)
         .data(function(d){return [d]})
@@ -120,17 +101,19 @@ d3.kblHistoryArc = function () {
       hand.transition().duration(600).attr('transform', d3.svg.transform().translate(function(){
             return [attrs.width*.5, attrs.height*.5]
           }).rotate(function(d) {
-        return (key=='normal_r' ? thetaR(d[key]) :thetaRall(d[key]) ) * (180/Math.PI) -90;
+        return (key=='normal_r' ? attrs.thetaR(d[key]) :attrs.thetaRall(d[key]) ) * (180/Math.PI) -90;
       }))
 
     return selection;
   }
   function drawBackArc(selection) {
+
     var arc = d3.svg.arc()
       .innerRadius(0)
       .outerRadius(radius)
-      .startAngle(thetaR.range()[0])
-      .endAngle(thetaR.range()[1]);
+      .startAngle(attrs.thetaR.range()[0])
+      .endAngle(attrs.thetaR.range()[1]);
+
     selection.append('path')
       .attr('class', 'jg-rank-arc jg-back')
       .attr('transform', d3.svg.transform().translate(function(){
@@ -146,7 +129,7 @@ d3.kblHistoryArc = function () {
       .innerRadius(0)
       .outerRadius(radius)//attrs.width*.5)
       .startAngle(function(d){
-        var r = thetaR(d.normal_r), rall= thetaRall(d.normal_rall)
+        var r = attrs.thetaR(d.normal_r), rall= attrs.thetaRall(d.normal_rall)
         if (r <= rall) {
           return r
         } else {
@@ -154,7 +137,7 @@ d3.kblHistoryArc = function () {
         }
       })
       .endAngle(function(d) {
-        var r = thetaR(d.normal_r), rall= thetaRall(d.normal_rall)
+        var r = attrs.thetaR(d.normal_r), rall= attrs.thetaRall(d.normal_rall)
         if (r <= rall) {
           return rall
         } else {
@@ -171,7 +154,7 @@ d3.kblHistoryArc = function () {
         }))
 
     rankArc.attr('class', function(d) {
-      var r = thetaR(d.normal_r), rall= thetaRall(d.normal_rall)
+      var r = attrs.thetaR(d.normal_r), rall= attrs.thetaRall(d.normal_rall)
       if (r <= rall) {
         return 'jg-rank-arc jg-rank jg-r'
       } else {
@@ -183,7 +166,22 @@ d3.kblHistoryArc = function () {
 
   }
 
+  function createAccessorFunc(_attr) {
+    function accessor(val) {
+      if (!arguments.length) {
+        return attrs[_attr]
+      }
+      attrs[_attr] = val;
+      return exports;
+    }
+    return accessor;
+  }
 
+  for (var attr in attrs) {
+    if((!exports[attr]) && attrs.hasOwnProperty(attr)) {
+      exports[attr] = createAccessorFunc(attr);
+    }
+  }
 
   return exports;
 }

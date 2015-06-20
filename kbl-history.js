@@ -183,7 +183,14 @@ d3.kblHistory = function module () {
       .attr('text-anchor', 'middle')
       .attr('x', x.rangeBand()/2)
       .text(function(d){return teamMap.get(d.key)})
-    row.call(drawRankArc, true);
+    var arc = d3.kblHistoryArc()
+      .isAvg(true)
+      .width(x.rangeBand())
+      .height(y.rangeBand())
+      .thetaR(thetaR)
+      .thetaRall(thetaRall)
+
+    row.call(arc);
   }
 
   function svgYearStatInit(svg) {
@@ -728,7 +735,6 @@ d3.kblHistory = function module () {
 
 
     col.call(drawRankArc)
-    //col.call(drawRankLine);
     return row;
   }
 
@@ -877,7 +883,6 @@ d3.kblHistory = function module () {
           return [i*x.rangeBand(), 0]
         }))
 
-      //TODO : 플레이 오프 및 한국시리즈 결과 반영
       rank.append('circle')
         .each(function(d) {
           d3.select(this).classed({'playoff': (d.playoff==1),
