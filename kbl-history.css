@@ -43,8 +43,8 @@ div.jg-chart {
 }
 
 .jg-rank-text > circle.playoff{
-  stroke : #bbb ;
-  stroke-width : 1px;
+  fill : #bbb ;
+  /*stroke-width : 1px;*/
   fill-opacity : .55;
 }
 .jg-rank-text > circle.korean-season{
