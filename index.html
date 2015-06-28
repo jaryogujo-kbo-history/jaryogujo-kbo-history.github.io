@@ -4,23 +4,17 @@
 <title>감독으로 보는 한국프로야구 역사</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-<script src="bower_components/d3/d3.js"></script>
-<script src="bower_components/d3-transform/src/d3-transform.js"></script>
-<link rel=stylesheet href="bower_components/normalize.css/normalize.css" type="text/css" media=screen>
-<link rel=stylesheet href="kbl-history.css" type="text/css" media=screen>
+<link rel=stylesheet href="index.css" type="text/css" media=screen>
 </head>
 <body>
   <div class="jg-content">
     <div class="jg-chart">
     </div>
   </div>
-  <script src="kbl-history-data-manager.js"></script>
-  <script src="kbl-history-arc.js"></script>
-  <script src="kbl-history-row.js"></script>
-  <script src="kbl-history.js"></script>
+  <script src="index.js"></script>
   <script>
     var kblHistoryDm = d3.kblHistoryDataMng()
-    kblHistoryDm.loadCsv('kbl-team-history.csv')
+    kblHistoryDm.loadCsv('data/kbl-team-history.csv')
     kblHistoryDm.on('dataReady', function(d) {
       var chart = d3.kblHistory();
       d3.select('div.jg-chart')
