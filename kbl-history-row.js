@@ -23,6 +23,7 @@ d3.kblHistoryRow = function module () {
   //디스패치 설정
   var exports = function(_selection) {
     svgHeight = +d3.select(attrs.svg.node().parentNode).attr('height')
+    d3.select(attrs.svg.node().parentNode).attr('temp-height', svgHeight)
     _selection.each(function(_data) {
       // g 혹은 svg table이 this 라고 가정
       var row = d3.select(this)
@@ -101,8 +102,8 @@ d3.kblHistoryRow = function module () {
     var appendH = isOver ? appendHOvered : appendHClicked;
     var isSupp = attrs.isSupp////var isSupp = thisRow.classed('jg-supp')
     var thisSvg = attrs.svg
-    svgHeight = +d3.select(attrs.svg.node().parentNode).attr('height')
-    //if(attrs.isSupp) console.log(svgHeight);
+    if(attrs.isSupp) svgHeight = +d3.select(attrs.svg.node().parentNode).attr('temp-height')
+
     var moveUpDownFunc = function(selection, h) {
       selection.each(function(d){
         var pos = d3.transform(d3.select(this).attr('transform')).translate;
@@ -226,7 +227,9 @@ d3.kblHistoryRow = function module () {
       .call(turnOnOffEmblem);
     }
     //if(attrs.isSupp) console.log(svgHeight);
-    d3.select(thisSvg.node().parentNode).transition()
+    d3.select(thisSvg.node().parentNode)
+      .attr('temp-height', svgHeight)
+      .transition()
       .duration(400).attr('height', svgHeight)
   }
 

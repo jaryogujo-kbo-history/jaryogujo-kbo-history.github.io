@@ -66,7 +66,7 @@ d3.kblHistory = function module () {
         var stackDiv = d3.select(this).append('div')
           .attr('class', 'jg-div-stack')
 
-        attrs.stackHeight = y.rangeBand()*3;
+        attrs.stackHeight = y.rangeBand()*4;
         svgStack = stackDiv.append('svg')
           .attr('class','jg-svg-stack')
           .attr('width', width + margin.left + margin.right)
@@ -398,7 +398,6 @@ d3.kblHistory = function module () {
     .attr('class', 'jg-table')
     .attr('transform', d3.svg.transform().translate(function() {return [0,margin.top]})) //margin.left
 
-    //FIXME : row 모듈 사용하도록 교체
     var row = d3.kblHistoryRow()
       .width(x.rangeBand())
       .height(y.rangeBand())
@@ -419,21 +418,6 @@ d3.kblHistory = function module () {
     row.on('colClick', function(col) {
       col.call(clickColFunc);
     })
-    /*
-    var row = table.selectAll('g.jg-row')
-      .data(function(d) {return d}, function(d) { return d.key}) // => team level
-    .enter().append('g')
-    .attr('class', 'jg-row')
-    .attr('transform', d3.svg.transform().translate(function(d) {
-      d.y = y(d.key);
-      return [0, d.y]
-    }))
-    .on('mouseenter', function(d){
-      svgYearStat.call(drawLineYearly, d) //FIXME : row.on('over.yearStat')yearStatBrush에 연동
-    }).call(drawLabel)
-    .call(drawCols)
-    */
-    //table.call(drawRows)
   }
 
 
@@ -496,22 +480,6 @@ d3.kblHistory = function module () {
       d.y = y.rangeBand()*(i+1)
     })
     svgStack.datum(thisData).call(suppRow);
-    /*
-    var suppRow = svgStack.selectAll('.jg-supp.jg-temp.jg-row')
-        .data(thisData, function(d){ return d.key})
-    suppRow.enter().append('g')
-      .classed({'jg-supp':true, 'jg-temp':true,'jg-row':true})
-      .attr('transform', d3.svg.transform().translate(function(d) { return [0, y.rangeBand()] }))
-
-    suppRow.exit().remove();
-
-    suppRow.call(drawCols, true)
-    suppRow.call(drawLabel, true)
-    setTimeout(function(){
-      svgStack.selectAll('.jg-supp').selectAll('.jg-col').classed({'jg-mouseover':isOver, 'jg-clicked':!isOver})
-    }, 100)
-    */
-
   }
 
   function mouseOverColFunc(selection) {
