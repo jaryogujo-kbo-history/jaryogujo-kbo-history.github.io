@@ -10,24 +10,27 @@ d3.kblHistoryRow = function module () {
     //y : 0,
     svg : null,
     teamMap : null,
-    isInteractive : true
+    isInteractive : true,
+    margin : null
   } //FIXME : 시작-마지막 연도 + 사이즈 되면 알아서 되도록
   var emblemPath = 'image/team/'
   var dispatch = d3.dispatch("colOver", "colClick", 'rowOver')//, "rowOver", "rowClick"); // .hide .show
+  var svgHeight;
   /*
   dispatch.load(value);
   */
 
   //디스패치 설정
   var exports = function(_selection) {
+    svgHeight = +d3.select(attrs.svg.node().parentNode).attr('height')
     _selection.each(function(_data) {
       // g 혹은 svg table이 this 라고 가정
       var row = d3.select(this)
-        .selectAll('.jg-row' + (attrs.isSupp ? '.jg-supp.jg-temp' : ''))// table.call
+        .selectAll( (attrs.isAvg ? '.jg-row-avg' : '.jg-row') + (attrs.isSupp ? '.jg-supp.jg-temp' : '') )// table.call
           .data(_data,  function(d) { return d.key})
 
       row.enter().append('g')
-        .classed({'jg-supp':attrs.isSupp, 'jg-temp':attrs.isSupp,'jg-row':true})//.attr('class', 'jg-row')
+        .classed({'jg-supp':attrs.isSupp, 'jg-temp':attrs.isSupp,'jg-row':!attrs.isAvg, 'jg-row-avg':attrs.isAvg})//.attr('class', 'jg-row')
         .attr('transform', d3.svg.transform().translate(function(d) {
           return [0, d.y] //FIXME : 이미 높이가 결정되어 있어야함.
         }))
@@ -41,7 +44,7 @@ d3.kblHistoryRow = function module () {
 
       if(attrs.isSupp) {
         setTimeout(function(){
-          suppRow.selectAll('.jg-col').classed({'jg-mouseover':true})
+          row.selectAll('.jg-col').classed({'jg-mouseover':true})
         }, 100)
       }
     })
@@ -83,11 +86,11 @@ d3.kblHistoryRow = function module () {
 
    label.append('text')
       .attr('text-anchor', 'end')
-      .attr('x', margin.left*.95)
+      .attr('x', attrs.margin.left*.95)
       .attr('y', attrs.height*.5)
       //.attr('y', function(d){return attrs.height*.5  }) //+ margin.top
       .attr('dy', '.35em')
-      .text(function(d) {return (!attrs.isSupp ? attrs.teamMap.get(d.key): d.key)}) // FIXME: key 에 값 가지고 있게 하기
+      .text(function(d) {return (!attrs.isSupp ? attrs.teamMap.get(d.key): d.key)})
     return row
   }
 
@@ -98,11 +101,10 @@ d3.kblHistoryRow = function module () {
     var appendH = isOver ? appendHOvered : appendHClicked;
     var isSupp = attrs.isSupp////var isSupp = thisRow.classed('jg-supp')
     var thisSvg = attrs.svg
-    var thisSvgHeight = d3.select(attrs.svg.node().parentNode).attr('height')
-
+    svgHeight = +d3.select(attrs.svg.node().parentNode).attr('height')
+    //if(attrs.isSupp) console.log(svgHeight);
     var moveUpDownFunc = function(selection, h) {
       selection.each(function(d){
-
         var pos = d3.transform(d3.select(this).attr('transform')).translate;
         if (!('targetY' in d)) d.targetY = pos[1];
         d.targetY += h;
@@ -122,7 +124,7 @@ d3.kblHistoryRow = function module () {
         })
         // 사이에 있던 것들은 위로!
         underThisRows.call(moveUpDownFunc, -appendHSelected);
-        thisSvgHeight -= appendHSelected
+        svgHeight -= appendHSelected
 
         thisRow.selectAll('.jg-bottom-row').transition()
           .duration(duration)
@@ -145,7 +147,7 @@ d3.kblHistoryRow = function module () {
         var appendHSelected = wasOver ? appendHOvered : 0;
         var finalAppendH = appendH-appendHSelected
         underThisRows.call(moveUpDownFunc, finalAppendH);
-        thisSvgHeight += finalAppendH
+        svgHeight += finalAppendH
 
         thisRow.selectAll('.jg-bottom-row').transition()
           .duration(duration)
@@ -163,7 +165,7 @@ d3.kblHistoryRow = function module () {
         if (thisRow.classed('jg-selected')) {
           thisRow.selectAll('.jg-label > image')
             .attr('xlink:href', function(d) {
-              return emblemPath + d.key + '@2x_c.png'
+              return emblemPath + d.key + '_c@2x.png'
             })
         } else {
           thisRow.selectAll('.jg-label > image')
@@ -174,7 +176,6 @@ d3.kblHistoryRow = function module () {
       })
     }
 
-    //var curIndex = getIndexOfRow(thisRow);
     var selectedRow = thisSvg.selectAll('.jg-row.jg-selected');
     if (selectedRow.size() > 0) { // 이미 존재 할 때
       //var selectedIndex = getIndexOfRow(selectedRow);
@@ -224,9 +225,9 @@ d3.kblHistoryRow = function module () {
       thisRow.call(appendRowFunc)
       .call(turnOnOffEmblem);
     }
-
+    //if(attrs.isSupp) console.log(svgHeight);
     d3.select(thisSvg.node().parentNode).transition()
-      .duration(400).attr('height', thisSvgHeight)
+      .duration(400).attr('height', svgHeight)
   }
 
   function drawBottomRow(selection, isSupp, isOver) {
@@ -243,7 +244,7 @@ d3.kblHistoryRow = function module () {
     })
     var bottomRow = selection.append('g')
       .attr('class', 'jg-bottom-row')
-      .attr('transform', d3.svg.transform().translate([margin.left, attrs.height]))
+      .attr('transform', d3.svg.transform().translate([attrs.margin.left, attrs.height]))
 
     bottomRow
       .style('opacity', 0)
@@ -253,9 +254,10 @@ d3.kblHistoryRow = function module () {
     var bottomCol = bottomRow.selectAll('.jg-bottom-col')
         .data(values)
       .enter().append('g')
+      .attr('class', 'jg-bottom-col')
       .attr('transform', d3.svg.transform()
         .translate(
-          function(d,i){return [x(d.from), attrs.height*.025]}
+          function(d,i){return [attrs.x(d.from), attrs.height*.025]}
         ))
     bottomCol.selectAll('.jg-line')
         .data(function(d){return isOver? [d]:[d,d]})
@@ -266,15 +268,22 @@ d3.kblHistoryRow = function module () {
       .attr('x2', function(d){return (d.to-d.from)*attrs.width+attrs.width*.9})
       .attr('y2', function(d,i){return i*(attrs.height*2)})
     if (!isOver) {
-      var clock = bottomCol.append('g')
-        .attr('class', 'jg-rank-clock')
+      var arc = d3.kblHistoryArc()
+        .isAvg(true)
+        .width(attrs.width)
+        .height(attrs.height)
+        .thetaR(attrs.thetaR)
+        .thetaRall(attrs.thetaRall)
+
+      var clock = bottomCol.selectAll('.jg-bottom-clock')
+          .data(function(d){return [[d]]})
+        .enter().append('g')
+        .attr('class', 'jg-bottom-clock')
         .attr('transform', d3.svg.transform().translate(function(d){
-          return [(x(d.to)-x(d.from))*.5, attrs.height*.85]
+          return [(attrs.x(d[0].to)-attrs.x(d[0].from))*.5, attrs.height*.85]
         }))
-      clock.call(drawBackArc)
-        .call(drawArc)
-        .call(drawHand, 'normal_r', 'r')
-        .call(drawHand, 'normal_rall', 'rall');
+
+        clock.call(arc)
     }
 
     bottomCol.append('text')
@@ -287,7 +296,7 @@ d3.kblHistoryRow = function module () {
       .attr('y', function(d){return attrs.height*.45})//(isOver? attrs.height*.6:attrs.height*1.6)})
       .selectAll('tspan')
         .data(function(d){
-          if(d.to-d.from==0 && (isSupp ? teamMap.get(d.key) : d.key).length >= 3) {
+          if(d.to-d.from==0 && (isSupp ? attrs.teamMap.get(d.key) : d.key).length >= 3) {
             return [{x:d.x, key:d.key[0]+'—'}, {x:d.x, key:d.key.substring(1)}]
           } else {
             return [{x:d.x, key:d.key}]
@@ -296,12 +305,12 @@ d3.kblHistoryRow = function module () {
       .enter().append('tspan')
       .attr('x', function(d){return d.x})//.attr('dx', function(d,i){return '-22px'})
       .attr('dy', function(d,i){return i+'em'})
-      .text(function(d){return isSupp ? teamMap.get(d.key) : d.key})
+      .text(function(d){return isSupp ? attrs.teamMap.get(d.key) : d.key})
     return selection;
   }
 
-  function drawCols(row, isSupp) {
-    isSupp = isSupp || false;
+  function drawCols(row) {
+    isSupp = attrs.isSupp;
     var col = row.selectAll('g.jg-col')
       .data(function (d) {
         //if(isSupp) return d.values
@@ -313,7 +322,7 @@ d3.kblHistoryRow = function module () {
     })
     .attr('class', 'jg-col')
     .attr('transform', d3.svg.transform().translate(function(d) {
-      var dx = x(d[0].year) + margin.left; // FIXME : x 안쓰고 시작할 수 있도록??
+      var dx = attrs.x(d[0].year) + attrs.margin.left; // FIXME : x 안쓰고 시작할 수 있도록??
       //d.x = x(d[0].year) + margin.left;
       return [dx, 0]
     }))
@@ -347,14 +356,13 @@ d3.kblHistoryRow = function module () {
     })
     .attr('height', attrs.height)
 
-    //TODO : rakarc 그리도록 수정
     var arc = d3.kblHistoryArc()
       .isSupp(attrs.isSupp)
       .isAvg(attrs.isAvg)
       .width(attrs.width)
       .height(attrs.height)
       .thetaR(attrs.thetaR)
-      .thetaR(attrs.thetaRall)
+      .thetaRall(attrs.thetaRall)
 
     col.call(arc);
     //col.call(drawRankLine);

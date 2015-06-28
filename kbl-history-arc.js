@@ -1,6 +1,7 @@
 d3.kblHistoryArc = function () {
   var attrs = {
     isSupp : false,
+    isBottom: false,
     width : 20,
     height : 20,
     isAvg : false,
@@ -48,7 +49,6 @@ d3.kblHistoryArc = function () {
         .attr('dy', '.9em')
         .text(function(d) {return d.season_rank}) //FIXME : 나중에 고침
     }
-
 
 
     var clock = col.selectAll('.jg-rank-clock')

@@ -119,10 +119,15 @@ d3.kblHistory = function module () {
 
     calRanks(_data);
     calNestedData(_data);
+
     x.rangeRoundBands([0, width])
       .domain(d3.range(yearExtent[0], yearExtent[1]+1))
     y.rangeRoundBands([0, height])
       .domain(teamCoachData.map(function(d) {return d.key}))
+
+    teamCoachData.forEach(function(d) {
+      d.y = y(d.key);
+    })
     var rExtent = d3.extent(_data, function(d){return d.r});
     var rallExtent = d3.extent(_data, function(d){return d.rall})
     var yearDescExtent = [d3.min([rExtent[0], rallExtent[0]]), d3.max([rExtent[1], rallExtent[1]])];
@@ -159,30 +164,31 @@ d3.kblHistory = function module () {
     curYearExtent = turnRangeToExtent(yearStatBrush.extent());
     var avgData = getAverageData(teamCoachData, curYearExtent);
 
-    var g = svg.append('g')
-        .attr('class', 'jg-team-stat-line-g')
+    var row = svg.append('g')
+        .attr('class', 'jg-row jg-avg')
         .attr('transform', d3.svg.transform()
           .translate([(margin.left + attrs.canvasWidth - (avgData.length*x.rangeBand()*1.25))/2 ,margin.top/2])); //0
-    g.call(drawAvgRows, avgData);
+    row.call(drawAvgCol, avgData);
 
     return svg;
   }
 
-  function drawAvgRows(selection, avgData) {
-    var row = selection.selectAll('.jg-row-avg')
+  function drawAvgCol(selection, avgData) {
+    var col = selection.selectAll('.jg-col')
         .data(avgData)
 
-    row.enter().append('g')
-      .attr('class', 'jg-row-avg')
+    col.enter().append('g')
+      .attr('class', 'jg-col')
       .attr('transform', d3.svg.transform().translate(function(d,i) {
         return [x.rangeBand()*1.25*i, margin.top];
       }))
-    row.selectAll('text')
+    col.selectAll('text')
         .data(function(d) { return d})
       .enter().append('text')
       .attr('text-anchor', 'middle')
       .attr('x', x.rangeBand()/2)
       .text(function(d){return teamMap.get(d.key)})
+
     var arc = d3.kblHistoryArc()
       .isAvg(true)
       .width(x.rangeBand())
@@ -190,7 +196,7 @@ d3.kblHistory = function module () {
       .thetaR(thetaR)
       .thetaRall(thetaRall)
 
-    row.call(arc);
+    col.call(arc);
   }
 
   function svgYearStatInit(svg) {
@@ -330,7 +336,7 @@ d3.kblHistory = function module () {
       if (curYearExtent[0] !== domain[0] || curYearExtent[1] !== domain[1]) {
         curYearExtent = domain
         var avgData = getAverageData(teamCoachData, curYearExtent);
-        svgTeamStat.call(drawAvgRows, avgData);
+        svgTeamStat.call(drawAvgCol, avgData);
       }
       d3.select(this).call(yearStatBrush.extent(extent1));
     }
@@ -380,7 +386,6 @@ d3.kblHistory = function module () {
       .tickSize(0)
       .tickFormat(function(d) {
           return d3.format('02d')(d%100) + "'"
-          //d3.format('d'))
         })
       .orient("top")
 
@@ -393,7 +398,28 @@ d3.kblHistory = function module () {
     .attr('class', 'jg-table')
     .attr('transform', d3.svg.transform().translate(function() {return [0,margin.top]})) //margin.left
 
-
+    //FIXME : row 모듈 사용하도록 교체
+    var row = d3.kblHistoryRow()
+      .width(x.rangeBand())
+      .height(y.rangeBand())
+      .x(x)
+      .thetaR(thetaR)
+      .thetaRall(thetaRall)
+      .svg(svg)
+      .teamMap(teamMap)
+      .margin(margin)
+    table.call(row)
+    row.on('rowOver', function(d) {
+      svgYearStat.call(drawLineYearly,d)
+      //console.log(d);
+    })
+    row.on('colOver', function(col) {
+      col.call(mouseOverColFunc);
+    })
+    row.on('colClick', function(col) {
+      col.call(clickColFunc);
+    })
+    /*
     var row = table.selectAll('g.jg-row')
       .data(function(d) {return d}, function(d) { return d.key}) // => team level
     .enter().append('g')
@@ -406,530 +432,10 @@ d3.kblHistory = function module () {
       svgYearStat.call(drawLineYearly, d) //FIXME : row.on('over.yearStat')yearStatBrush에 연동
     }).call(drawLabel)
     .call(drawCols)
-
+    */
     //table.call(drawRows)
   }
 
-
-  function drawRows(table) {
-
-
-
-    //.on('mouseover')
-
-    //row.call(drawAvg, curYearExtent);
-    //row.call(drawLabel);
-    //row.call(drawCols);
-  }
-
-
-  function drawLabel(row, isSupp) {
-    var label = row.selectAll('.jg-label')
-        .data(function(d) {return [d]})
-      .enter().append('g')
-      .attr('class','jg-label')
-      .attr('transform', d3.svg.transform().translate(function(d,i) {
-        return [0, 0]
-      }))
-      .on('mouseenter', function(d) {
-        var thisRow = d3.select(d3.select(this).node().parentNode);
-        if (!thisRow.classed('jg-selected')) {
-          addBottomRow(thisRow, true);
-        }
-      })
-      .on('mouseleave', function(d) {
-        var thisRow = d3.select(d3.select(this).node().parentNode);
-        if (thisRow.classed('jg-selected')&&thisRow.classed('jg-mouseover')) {
-          addBottomRow(thisRow, true);
-        }
-      })
-      .on('click', function() {
-        var thisRow = d3.select(d3.select(this).node().parentNode);
-        addBottomRow(thisRow);
-      })
-   if (!isSupp) {
-     label.append('image')
-        .attr('xlink:href', function(d) {
-          return 'image/team/' + d.key + '@2x.png'
-        })
-        .attr('width', '27')
-        .attr('height', '22')
-        //<image xlink:href="/files/2917/fxlogo.png" x="0" y="0" height="100" width="100" />
-   }
-
-   label.append('text')
-      .attr('text-anchor', 'end')
-      .attr('x', margin.left*.95)
-      .attr('y', y.rangeBand()*.5)
-      //.attr('y', function(d){return y.rangeBand()*.5  }) //+ margin.top
-      .attr('dy', '.35em')
-      .text(function(d) {return (!isSupp ? teamMap.get(d.key): d.key)})
-    return row;
-  }
-
-  function addBottomRow(thisRow,/*optional*/isOver) {
-    isOver = isOver || false;
-    var duration = 400;
-    var appendHClicked = y.rangeBand()*2.25, appendHOvered = y.rangeBand() * 1;
-    var appendH = isOver ? appendHOvered : appendHClicked;
-    var isSupp = thisRow.classed('jg-supp')
-    var thisSvg = isSupp ? svgStack : svg;
-    //var thisRowPos = d3.transform(thisRow.attr('transform')).translate
-    /*
-    var getIndexOfRow = function(row) {
-      var d = row.datum();
-      var curIndex = 0;
-      thisSvg.selectAll('.jg-row').each(function(dd,ii) {
-        if (dd.key == d.key) curIndex  = ii;
-      })
-      return curIndex;
-    }*/
-    var moveUpDownFunc = function(selection, h) {
-      selection.each(function(d){
-
-        var pos = d3.transform(d3.select(this).attr('transform')).translate;
-        if (!('targetY' in d)) d.targetY = pos[1];
-        d.targetY += h;
-        d3.select(this).transition().duration(duration)
-          .attr('transform', d3.svg.transform().translate([pos[0], d.targetY]));
-      })
-    }
-    var removeRowFunc = function(selection) {
-      selection.each(function(d) {
-        var thisRow = d3.select(this)
-        var thisRowPos = d3.transform(d3.select(this).attr('transform')).translate;
-        var wasOver = thisRow.classed('jg-mouseover');
-        var appendHSelected = wasOver ? appendHOvered : appendHClicked;
-        var underThisRows = thisSvg.selectAll('.jg-row').filter(function(r,i) {
-          var pos = d3.transform(d3.select(this).attr('transform')).translate
-          return pos[1] > thisRowPos[1]
-        })
-        // 사이에 있던 것들은 위로!
-        underThisRows.call(moveUpDownFunc, -appendHSelected);
-        if(isSupp) attrs.stackHeight -= appendHSelected
-        else attrs.tableHeight -= appendHSelected
-        thisRow.selectAll('.jg-bottom-row').transition()
-          .duration(duration)
-          .style('opacity', 0)
-          .each('end', function(){
-            d3.select(this).remove();
-          })
-        thisRow.classed({'jg-selected':false, 'jg-mouseover':false});
-      })
-    }
-
-    var appendRowFunc = function(selection, wasOver) {
-      selection.each(function(d) {
-        var thisRow = d3.select(this)
-        var thisRowPos = d3.transform(d3.select(this).attr('transform')).translate;
-        var underThisRows = thisSvg.selectAll('.jg-row').filter(function(r,i) {
-          var pos = d3.transform(d3.select(this).attr('transform')).translate
-          return pos[1] > thisRowPos[1]
-        })
-        var appendHSelected = wasOver ? appendHOvered : 0;
-        var finalAppendH = appendH-appendHSelected
-        underThisRows.call(moveUpDownFunc, finalAppendH);
-        if(isSupp) attrs.stackHeight += finalAppendH
-        else attrs.tableHeight += finalAppendH
-        thisRow.selectAll('.jg-bottom-row').transition()
-          .duration(duration)
-          .style('opacity', 0)
-          .each('end', function(){
-            d3.select(this).remove();
-          })
-        thisRow.classed({'jg-selected':true, 'jg-mouseover':isOver})
-          .call(drawBottomRow, isSupp, isOver);
-      })
-    }
-    var turnOnOffEmblem = function(selection) {
-      selection.each(function(d) {
-        var thisRow = d3.select(this)
-        if (thisRow.classed('jg-selected')) {
-          thisRow.selectAll('.jg-label > image')
-            .attr('xlink:href', function(d) {
-              return 'image/team/' + d.key + '_c@2x.png'
-            })
-        } else {
-          thisRow.selectAll('.jg-label > image')
-            .attr('xlink:href', function(d) {
-              return 'image/team/' + d.key + '@2x.png'
-            })
-        }
-      })
-    }
-
-    //var curIndex = getIndexOfRow(thisRow);
-    var selectedRow = thisSvg.selectAll('.jg-row.jg-selected');
-    if (selectedRow.size() > 0) { // 이미 존재 할 때
-      //var selectedIndex = getIndexOfRow(selectedRow);
-      // 중복 인 것
-      var dupRows = selectedRow.filter(function(d) {
-        return d.key === thisRow.datum().key;
-      })
-      // 중복 아닌 것
-      var undupRows = selectedRow.filter(function(d) {
-        return d.key !== thisRow.datum().key;
-      })
-      if (dupRows.size() <= 0 ) {
-        thisRow.call(appendRowFunc)
-          .call(turnOnOffEmblem);
-      }
-
-      if (isOver) {
-        // 마우스 오버 였으면 클릭으로 바꾸기
-        dupRows.filter(function() {
-          return d3.select(this).classed('jg-mouseover')
-        }).call(removeRowFunc)
-        .call(turnOnOffEmblem)
-      } else {
-        // 클릭 된 거면 없애기
-        dupRows.filter(function(){
-          return !d3.select(this).classed('jg-mouseover')
-        }).call(removeRowFunc)
-        .call(turnOnOffEmblem)
-        // 마우스 오버 였으면 클릭으로 바꾸기
-        dupRows.filter(function() {
-          return d3.select(this).classed('jg-mouseover')
-        }).call(appendRowFunc, true)
-        .call(turnOnOffEmblem)
-        undupRows.filter(function() {
-          return !d3.select(this).classed('jg-mouseover')
-        }).call(removeRowFunc)
-        .call(turnOnOffEmblem)
-      }
-      // 클릭 된 거면 그냥 놔두기
-      // 클릭 안 된거면 마우스 오버는 없애기
-      undupRows.filter(function() {
-        return d3.select(this).classed('jg-mouseover')
-      }).call(removeRowFunc)
-      .call(turnOnOffEmblem)
-    }  else { // 기존에 없을때
-      // 새로 그리기
-      thisRow.call(appendRowFunc)
-      .call(turnOnOffEmblem);
-    }
-
-    d3.select(thisSvg.node().parentNode).transition()
-      .duration(400).attr('height', (isSupp? attrs.stackHeight : attrs.tableHeight))
-  }
-
-  function drawBottomRow(selection, isSupp, isOver) {
-    var d= selection.datum();
-    var values = []
-    var duration = 400;
-    d.values.forEach(function(curData) {
-      var key = curData.key
-      curData.values.forEach(function(coachValues) {
-        var normal_r = d3.mean(coachValues, function(d){return d.normal_r})
-        var normal_rall = d3.mean(coachValues, function(d){return d.normal_rall})
-        values.push({key:key, from:coachValues[0].year, to:coachValues[coachValues.length-1].year, normal_r:normal_r, normal_rall:normal_rall})
-      })
-    })
-    var bottomRow = selection.append('g')
-      .attr('class', 'jg-bottom-row')
-      .attr('transform', d3.svg.transform().translate([margin.left, y.rangeBand()]))
-
-    bottomRow
-      .style('opacity', 0)
-      .transition().duration(duration)
-      .style('opacity', 1)
-
-    var bottomCol = bottomRow.selectAll('.jg-bottom-col')
-        .data(values)
-      .enter().append('g')
-      .attr('transform', d3.svg.transform()
-        .translate(
-          function(d,i){return [x(d.from), y.rangeBand()*.025]}
-        ))
-    bottomCol.selectAll('.jg-line')
-        .data(function(d){return isOver? [d]:[d,d]})
-      .enter().append('line')
-      .attr('class', 'jg-line')
-      .attr('x1', function(d){return x.rangeBand()*.1})
-      .attr('y1', function(d,i){return i*(y.rangeBand()*2)})
-      .attr('x2', function(d){return (d.to-d.from)*x.rangeBand()+x.rangeBand()*.9})
-      .attr('y2', function(d,i){return i*(y.rangeBand()*2)})
-    if (!isOver) {
-      var clock = bottomCol.append('g')
-        .attr('class', 'jg-rank-clock')
-        .attr('transform', d3.svg.transform().translate(function(d){
-          return [(x(d.to)-x(d.from))*.5, y.rangeBand()*.85]
-        }))
-      clock.call(drawBackArc)
-        .call(drawArc)
-        .call(drawHand, 'normal_r', 'r')
-        .call(drawHand, 'normal_rall', 'rall');
-    }
-
-    bottomCol.append('text')
-      .attr('class', 'jg-coach-name')
-      .attr('text-anchor', 'middle')
-      .attr('x', function(d){
-        d.x = (d.to-d.from+1)*x.rangeBand()*.5
-        return d.x
-      })
-      .attr('y', function(d){return y.rangeBand()*.45})//(isOver? y.rangeBand()*.6:y.rangeBand()*1.6)})
-      .selectAll('tspan')
-        .data(function(d){
-          if(d.to-d.from==0 && (isSupp ? teamMap.get(d.key) : d.key).length >= 3) {
-            return [{x:d.x, key:d.key[0]+'—'}, {x:d.x, key:d.key.substring(1)}]
-          } else {
-            return [{x:d.x, key:d.key}]
-          }
-        })
-      .enter().append('tspan')
-      .attr('x', function(d){return d.x})//.attr('dx', function(d,i){return '-22px'})
-      .attr('dy', function(d,i){return i+'em'})
-      .text(function(d){return isSupp ? teamMap.get(d.key) : d.key})
-    return selection;
-  }
-
-  function drawCols(row, isSupp) {
-    isSupp = isSupp || false;
-    var col = row.selectAll('g.jg-col')
-      .data(function (d) {
-        //if(isSupp) return d.values
-        return d.values.reduce(function(pre, cur){ return pre.concat(cur.values)}, [])
-      })
-    .enter().append('g')
-    .sort(function(a,b) {
-      return a[0].year - b[0].year
-    })
-    .attr('class', 'jg-col')
-    .attr('transform', d3.svg.transform().translate(function(d) {
-      var dx = x(d[0].year) + margin.left;
-      //d.x = x(d[0].year) + margin.left;
-      return [dx, 0]
-    }))
-
-    if(!isSupp) {
-      col.on('mouseenter', function(d,i) {
-          d3.select(this).call(mouseOverColFunc);
-          var thisRow = d3.select(d3.select(this).node().parentNode);
-          if (!thisRow.classed('jg-selected')) {
-            addBottomRow(thisRow, true);
-          }
-        })
-        .on('mouseleave', function() {
-          col.classed({'jg-hidden':false, 'jg-mouseover':false})
-        })
-        .on('click', function(d,i) {
-          var thisRow = d3.select(d3.select(this).node().parentNode);
-          if (thisRow.classed('jg-selected')&&thisRow.classed('jg-mouseover')) {
-            addBottomRow(thisRow);
-          }
-          d3.select(this).call(clickColFunc);
-        })
-    }
-
-    col.append('rect')
-    .attr('class', 'jg-col-block')
-    .attr('x', 0)
-    .attr('y', 0)
-    .attr('width', function(d) {
-      var dwidth = d.length * x.rangeBand();
-      //d.width = d.length * x.rangeBand();
-      return dwidth//x(d[d.length-1].year+1) - x(d[0].year);
-    })
-    .attr('height', y.rangeBand())
-
-
-    col.call(drawRankArc)
-    return row;
-  }
-
-
-  function drawRankLine(col) {
-    var max_rank = 9;
-    var lineX = d3.scale.ordinal()
-      .domain(d3.range(1,max_rank+1))
-      .rangePoints([0,x.rangeBand()])
-    var lineY = d3.scale.ordinal()
-      .domain(d3.range(1,max_rank+1))
-      .rangePoints([0,y.rangeBand()])
-
-    var line = col.selectAll('.jg-rank-line')
-        .data(function(d){return d;})
-
-      line.enter().append('g')
-      .attr('class', 'jg-rank-line')
-      .attr('transform', d3.svg.transform().translate(function(d,i) {return [i*x.rangeBand(), 0]}))
-
-    var drawLine = function(selection, key, className) {
-      line.append('line')
-        .attr('class', 'jg-rank-'+className)
-        .attr('x1', function(d){return lineX(d[key])})
-        .attr('x2', function(d){return lineX(d[key])})
-        .attr('y1', 0)
-        .attr('y2', y.rangeBand())
-      line.append('line')
-        .attr('class', 'jg-rank-'+className)
-        .attr('y1', function(d){return lineY(d[key])})
-        .attr('y2', function(d){return lineY(d[key])})
-        .attr('x1', 0)
-        .attr('x2', x.rangeBand())
-    }
-
-    line.call(drawLine, 'rall_rank', 'rall')
-    line.call(drawLine, 'r_rank', 'r')
-    line.call(drawLine, 'rank', 'wa')
-  }
-
-  function drawHand (selection, key, className) {
-    var radius = x.rangeBand()*.45;
-    var hand = selection.selectAll('.jg-rank-hand.jg-'+className)
-        .data(function(d){return [d]})
-
-    hand.enter().append('line')
-      .attr('class','jg-rank-hand jg-'+className)
-
-    hand.attr('x1', function() {
-        return 0
-      }).attr('y1', 0)
-      .attr('x2', radius).attr('y2', 0)
-      .attr('transform', d3.svg.transform().translate(function(){
-            return [x.rangeBand()*.5, y.rangeBand()*.5]
-          }))
-
-      hand.transition().duration(600).attr('transform', d3.svg.transform().translate(function(){
-            return [x.rangeBand()*.5, y.rangeBand()*.5]
-          }).rotate(function(d) {
-        return (key=='normal_r' ? thetaR(d[key]) :thetaRall(d[key]) ) * (180/Math.PI) -90;
-      }))
-
-    return selection;
-  }
-  function drawBackArc(selection) {
-    var radius = x.rangeBand()*.45;
-
-    var arc = d3.svg.arc()
-      .innerRadius(0)
-      .outerRadius(radius)
-      .startAngle(thetaR.range()[0])
-      .endAngle(thetaR.range()[1]);
-    selection.append('path')
-      .attr('class', 'jg-rank-arc jg-back')
-      .attr('transform', d3.svg.transform().translate(function(){
-          return [x.rangeBand()*.5, y.rangeBand()*.5]
-        }))
-      .attr('d', arc)
-      //.style('fill', col.select('rect').style('fill'));
-    return selection
-  }
-
-  function drawArc(selection) {
-    var radius = x.rangeBand()*.45;
-
-    var arc = d3.svg.arc()
-      .innerRadius(0)
-      .outerRadius(radius)//x.rangeBand()*.5)
-      .startAngle(function(d){
-        var r = thetaR(d.normal_r), rall= thetaRall(d.normal_rall)
-        if (r <= rall) {
-          return r
-        } else {
-          return rall
-        }
-      })
-      .endAngle(function(d) {
-        var r = thetaR(d.normal_r), rall= thetaRall(d.normal_rall)
-        if (r <= rall) {
-          return rall
-        } else {
-          return r
-        }
-      })
-
-    var rankArc = selection.selectAll('.jg-rank-arc.jg-rank')
-      .data(function(d){return [d]})
-
-    rankArc.enter().append('path')
-      .attr('transform', d3.svg.transform().translate(function(){
-          return [x.rangeBand()*.5, y.rangeBand()*.5]
-        }))
-
-    rankArc.attr('class', function(d) {
-      var r = thetaR(d.normal_r), rall= thetaRall(d.normal_rall)
-      if (r <= rall) {
-        return 'jg-rank-arc jg-rank jg-r'
-      } else {
-        return 'jg-rank-arc jg-rank jg-rall'
-      }
-    }).transition().duration(600).attr('d', arc)
-
-    return selection
-
-  }
-
-  function drawRankArc(col, isAvg) {
-    isAvg = isAvg || false;
-
-    var max_rank = 9;
-    var rankCol = d3.scale.linear()
-      .domain([1,max_rank])
-      .range(['#22cb00', '#fbfefa'])
-      .interpolate(d3.interpolateRgb)
-
-    var radius = x.rangeBand()*.45;/*d3.scale.ordinal()
-      .domain(d3.range(1,max_rank+1))
-      .rangePoints([x.rangeBand()*.45, x.rangeBand()*.45])*/
-
-    if (!isAvg) {
-      var rank = col.selectAll('.jg-rank-text')
-          .data(function(d){return d;})
-        .enter().append('g')
-        .attr('class', 'jg-rank-text')
-        .attr('transform', d3.svg.transform().translate(function(d,i){
-          return [i*x.rangeBand(), 0]
-        }))
-
-      rank.append('circle')
-        .each(function(d) {
-          d3.select(this).classed({'playoff': (d.playoff==1),
-          'korean-season':(d.champion>0),
-          'champion':(d.champion==1)})
-        })
-        .attr('cx', radius*.5).attr('cy', radius*.5+1)
-        .attr('r', radius*.5+1)
-        //.attr('height', radius)
-      //'korean-season':(d.champion>0), 'champion':(d.champion==1), }
-      rank.append('text')
-        .attr('dx', '.175em')
-        .attr('dy', '.9em')
-        .text(function(d) {return d.season_rank})
-    }
-
-    var clock = col.selectAll('.jg-rank-clock')
-        .data(function(d){return d;})
-
-    clock.enter().append('g')
-      .attr('class', 'jg-rank-clock')
-      .attr('transform', d3.svg.transform().translate(function(d,i) {return [i*x.rangeBand(), 0]}))
-      .call(drawBackArc);
-
-    clock.each(function(d,i) {
-      var thisSelection = d3.select(this);
-      if (d.normal_rall == d.normal_r ){
-        if (d.normal_r !== 0) {
-          thisSelection.call(drawHand, 'normal_r', 'dup')
-        }
-        thisSelection.selectAll('.jg-rank-arc.jg-rank').remove();
-        thisSelection.selectAll('.jg-rank-hand.jg-r').remove();
-        thisSelection.selectAll('.jg-rank-hand.jg-rall').remove();
-      } else {
-        thisSelection.call(drawArc)
-        thisSelection.selectAll('.jg-rank-hand.jg-dup').remove(); //FIXME: 두개로 나눠지도로 수정.
-        if (d.normal_r >= d.normal_rall) {
-          thisSelection.call(drawHand, 'normal_rall', 'rall')
-          thisSelection.call(drawHand, 'normal_r', 'r')
-        } else {
-          thisSelection.call(drawHand, 'normal_r', 'r')
-          thisSelection.call(drawHand, 'normal_rall', 'rall')
-        }
-
-      }
-    })
-  }
 
 
   function calNestedData(_data) {
@@ -976,6 +482,21 @@ d3.kblHistory = function module () {
     var thisData = coachTeamData.filter(function(dd) {
       return dd.key == coachName;
     });
+    var suppRow = d3.kblHistoryRow()
+      .width(x.rangeBand())
+      .height(y.rangeBand())
+      .x(x)
+      .isSupp(true)
+      .thetaR(thetaR)
+      .thetaRall(thetaRall)
+      .svg(svgStack)
+      .teamMap(teamMap)
+      .margin(margin);
+    thisData.forEach(function(d,i) {
+      d.y = y.rangeBand()*(i+1)
+    })
+    svgStack.datum(thisData).call(suppRow);
+    /*
     var suppRow = svgStack.selectAll('.jg-supp.jg-temp.jg-row')
         .data(thisData, function(d){ return d.key})
     suppRow.enter().append('g')
@@ -987,8 +508,10 @@ d3.kblHistory = function module () {
     suppRow.call(drawCols, true)
     suppRow.call(drawLabel, true)
     setTimeout(function(){
-      suppRow.selectAll('.jg-col').classed({'jg-mouseover':isOver, 'jg-clicked':!isOver})
+      svgStack.selectAll('.jg-supp').selectAll('.jg-col').classed({'jg-mouseover':isOver, 'jg-clicked':!isOver})
     }, 100)
+    */
+
   }
 
   function mouseOverColFunc(selection) {

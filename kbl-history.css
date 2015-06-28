@@ -17,8 +17,8 @@ div.jg-chart {
   margin: 0 auto;
 }
 
-.jg-label, .jg-axis text, .jg-row-avg text {
-  fill : #777;
+.jg-label, .jg-axis text, .jg-row.jg-avg text {
+  fill : #bbb;
 }
 
 .jg-label {
@@ -153,9 +153,10 @@ circle.jg-link {
 }
 
 
-g.jg-row-avg .jg-back {
+.jg-row.jg-avg .jg-col .jg-back {
   fill : #aaa;
 }
+
 
 g.jg-col .jg-back {
   fill:#aaa;
