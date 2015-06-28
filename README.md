@@ -5,6 +5,8 @@
 ---
 ```
 $ bower install
+$ grunt dev
+$ http-server -p 8000
 ```
 
 예시
