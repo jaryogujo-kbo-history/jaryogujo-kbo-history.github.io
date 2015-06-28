@@ -442,6 +442,15 @@ div.jg-chart {
   margin: 0 auto;
 }
 
+.jg-menu div {
+  margin : 10px;
+}
+
+.jg-menu div > span {
+  color : #ddd;
+  padding : 4px;
+}
+
 .jg-label, .jg-axis text, .jg-row.jg-avg text {
   fill : #bbb;
 }
@@ -577,6 +586,11 @@ circle.jg-link {
   fill : #e8e9e8;
 }
 
+.jg-col .jg-rank-text.jg-hidden > circle {
+ visibility: hidden;
+}
+
+
 
 .jg-row.jg-avg .jg-col .jg-back {
   fill : #aaa;
@@ -607,4 +621,8 @@ g.jg-col:nth-child(even) .jg-back{
 
 .jg-bottom-row .jg-coach-name {
   fill:#777;
+}
+
+#jg-playoff {
+  color : #ddd;
 }

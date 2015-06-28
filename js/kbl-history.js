@@ -86,7 +86,11 @@ d3.kblHistory = function module () {
   function menuInit(selection) {
     var coaches = coachTeamData.map(function(d){return d.key})
     coaches.splice(0,0, '--특정 감독 살펴보기--')
-    var dropdown = selection.append('select')
+    var dropdownDiv = selection.append('div')
+      .attr('class', 'jg-coach-select')
+    dropdownDiv.append('span')
+      .text('특정 감독 선택하기')
+    var dropdown = dropdownDiv.append('select')
       .attr('class', 'jg-select')
 
     var options = dropdown.selectAll('option')
@@ -105,6 +109,22 @@ d3.kblHistory = function module () {
         selectCol(coachName, false);
       }
     })
+    //<input type="checkbox" name="vehicle" value="Bike"> I have a bike<br>
+    var checkDiv = selection.append('div')
+      .attr('class', 'jg-playoff-check')
+    checkDiv.append('span')
+      .text('플레이오프 진출 및 우승팀 표시')
+    var check = checkDiv.append('input')
+      .attr('id', 'jg-playoff')
+      .property({type:'checkbox', name:'showPlayOff', value:'playOff'})
+      .on('click', function(d) {
+        var checked = d3.select(this).property('checked');
+        svg.selectAll('.jg-col .jg-rank-text')
+          .classed({'jg-hidden':!checked})
+        svgStack.selectAll('.jg-col .jg-rank-text')
+          .classed({'jg-hidden':!checked})
+      })
+
   }
 
   function dataInit(_data) {
@@ -407,6 +427,7 @@ d3.kblHistory = function module () {
       .svg(svg)
       .teamMap(teamMap)
       .margin(margin)
+      .isHidden(!d3.select('#jg-playoff').property('checked'))
     table.call(row)
     row.on('rowOver', function(d) {
       svgYearStat.call(drawLineYearly,d)
@@ -475,7 +496,8 @@ d3.kblHistory = function module () {
       .thetaRall(thetaRall)
       .svg(svgStack)
       .teamMap(teamMap)
-      .margin(margin);
+      .margin(margin)
+      .isHidden(!d3.select('#jg-playoff').property('checked'));
     thisData.forEach(function(d,i) {
       d.y = y.rangeBand()*(i+1)
     })

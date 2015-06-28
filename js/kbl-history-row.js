@@ -11,7 +11,8 @@ d3.kblHistoryRow = function module () {
     svg : null,
     teamMap : null,
     isInteractive : true,
-    margin : null
+    margin : null,
+    isHidden : true
   } //FIXME : 시작-마지막 연도 + 사이즈 되면 알아서 되도록
   var emblemPath = 'image/team/'
   var dispatch = d3.dispatch("colOver", "colClick", 'rowOver')//, "rowOver", "rowClick"); // .hide .show
@@ -277,6 +278,7 @@ d3.kblHistoryRow = function module () {
         .height(attrs.height)
         .thetaR(attrs.thetaR)
         .thetaRall(attrs.thetaRall)
+        .isHidden(attrs.isHidden)
 
       var clock = bottomCol.selectAll('.jg-bottom-clock')
           .data(function(d){return [[d]]})
@@ -366,6 +368,7 @@ d3.kblHistoryRow = function module () {
       .height(attrs.height)
       .thetaR(attrs.thetaR)
       .thetaRall(attrs.thetaRall)
+      .isHidden(attrs.isHidden)
 
     col.call(arc);
     //col.call(drawRankLine);

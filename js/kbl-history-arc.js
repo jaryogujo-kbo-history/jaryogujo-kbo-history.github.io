@@ -7,7 +7,8 @@ d3.kblHistoryArc = function () {
     isAvg : false,
     maxRank :9,
     thetaR : null,
-    thetaRall : null
+    thetaRall : null,
+    isHidden : true
   }
 
   var lineX = d3.scale.ordinal(), lineY = d3.scale.ordinal()
@@ -30,7 +31,7 @@ d3.kblHistoryArc = function () {
       var rank = col.selectAll('.jg-rank-text')
           .data(function(d){return d;})
         .enter().append('g')
-        .attr('class', 'jg-rank-text')
+        .attr('class', 'jg-rank-text' + (attrs.isHidden? ' jg-hidden' : ''))
         .attr('transform', d3.svg.transform().translate(function(d,i){
           return [i*attrs.width, 0]
         }))

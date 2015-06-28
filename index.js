@@ -50,7 +50,8 @@ d3.kblHistoryArc = function () {
     isAvg : false,
     maxRank :9,
     thetaR : null,
-    thetaRall : null
+    thetaRall : null,
+    isHidden : true
   }
 
   var lineX = d3.scale.ordinal(), lineY = d3.scale.ordinal()
@@ -73,7 +74,7 @@ d3.kblHistoryArc = function () {
       var rank = col.selectAll('.jg-rank-text')
           .data(function(d){return d;})
         .enter().append('g')
-        .attr('class', 'jg-rank-text')
+        .attr('class', 'jg-rank-text' + (attrs.isHidden? ' jg-hidden' : ''))
         .attr('transform', d3.svg.transform().translate(function(d,i){
           return [i*attrs.width, 0]
         }))
@@ -279,7 +280,8 @@ d3.kblHistoryRow = function module () {
     svg : null,
     teamMap : null,
     isInteractive : true,
-    margin : null
+    margin : null,
+    isHidden : true
   } //FIXME : 시작-마지막 연도 + 사이즈 되면 알아서 되도록
   var emblemPath = 'image/team/'
   var dispatch = d3.dispatch("colOver", "colClick", 'rowOver')//, "rowOver", "rowClick"); // .hide .show
@@ -545,6 +547,7 @@ d3.kblHistoryRow = function module () {
         .height(attrs.height)
         .thetaR(attrs.thetaR)
         .thetaRall(attrs.thetaRall)
+        .isHidden(attrs.isHidden)
 
       var clock = bottomCol.selectAll('.jg-bottom-clock')
           .data(function(d){return [[d]]})
@@ -634,6 +637,7 @@ d3.kblHistoryRow = function module () {
       .height(attrs.height)
       .thetaR(attrs.thetaR)
       .thetaRall(attrs.thetaRall)
+      .isHidden(attrs.isHidden)
 
     col.call(arc);
     //col.call(drawRankLine);
@@ -755,7 +759,11 @@ d3.kblHistory = function module () {
   function menuInit(selection) {
     var coaches = coachTeamData.map(function(d){return d.key})
     coaches.splice(0,0, '--특정 감독 살펴보기--')
-    var dropdown = selection.append('select')
+    var dropdownDiv = selection.append('div')
+      .attr('class', 'jg-coach-select')
+    dropdownDiv.append('span')
+      .text('특정 감독 선택하기')
+    var dropdown = dropdownDiv.append('select')
       .attr('class', 'jg-select')
 
     var options = dropdown.selectAll('option')
@@ -774,6 +782,22 @@ d3.kblHistory = function module () {
         selectCol(coachName, false);
       }
     })
+    //<input type="checkbox" name="vehicle" value="Bike"> I have a bike<br>
+    var checkDiv = selection.append('div')
+      .attr('class', 'jg-playoff-check')
+    checkDiv.append('span')
+      .text('플레이오프 진출 및 우승팀 표시')
+    var check = checkDiv.append('input')
+      .attr('id', 'jg-playoff')
+      .property({type:'checkbox', name:'showPlayOff', value:'playOff'})
+      .on('click', function(d) {
+        var checked = d3.select(this).property('checked');
+        svg.selectAll('.jg-col .jg-rank-text')
+          .classed({'jg-hidden':!checked})
+        svgStack.selectAll('.jg-col .jg-rank-text')
+          .classed({'jg-hidden':!checked})
+      })
+
   }
 
   function dataInit(_data) {
@@ -1076,6 +1100,7 @@ d3.kblHistory = function module () {
       .svg(svg)
       .teamMap(teamMap)
       .margin(margin)
+      .isHidden(!d3.select('#jg-playoff').property('checked'))
     table.call(row)
     row.on('rowOver', function(d) {
       svgYearStat.call(drawLineYearly,d)
@@ -1144,7 +1169,8 @@ d3.kblHistory = function module () {
       .thetaRall(thetaRall)
       .svg(svgStack)
       .teamMap(teamMap)
-      .margin(margin);
+      .margin(margin)
+      .isHidden(!d3.select('#jg-playoff').property('checked'));
     thisData.forEach(function(d,i) {
       d.y = y.rangeBand()*(i+1)
     })
