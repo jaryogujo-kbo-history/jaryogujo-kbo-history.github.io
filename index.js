@@ -452,11 +452,12 @@ d3.kblHistoryRow = function module () {
       //var selectedIndex = getIndexOfRow(selectedRow);
       // 중복 인 것
       var dupRows = selectedRow.filter(function(d) {
-        return d.key === thisRow.datum().key;
+        //thisRow.
+        return  d3.select(this).node() === thisRow.node()//d.key === thisRow.datum().key;
       })
       // 중복 아닌 것
       var undupRows = selectedRow.filter(function(d) {
-        return d.key !== thisRow.datum().key;
+        return  d3.select(this).node() !== thisRow.node()
       })
       if (dupRows.size() <= 0 ) {
         thisRow.call(appendRowFunc)
@@ -692,7 +693,7 @@ d3.kblHistory = function module () {
     'BG':'빙그레','HH':'한화','SK':'SK','NS':'넥센','NC':'NC','SB':'쌍방울',
     'CB':'청보','TP':'태평양','HD':'현대'})
   var svg, svgYearStat, svgStack, svgTeamStat;
-  var teamCoachData, coachTeamData, suppData=[];
+  var teamCoachData, coachTeamData, fixedCoaches=[];
   var width, height;
   var color = d3.scale.category10();
   var yearStatBrush, curYearExtent, yearData;
@@ -1201,31 +1202,45 @@ d3.kblHistory = function module () {
 
       var exist = svgStack.selectAll('.jg-fixed.jg-row')
         .filter(function(d){return suppRow.datum().key == d.key})
+      var existY = Number.POSITIVE_INFINITY;
+      var existHeight = 0;
+      var parentSvg = d3.select(svgStack.node().parentNode)
 
       if (exist.size()>0) {
-        exist.classed({'jg-supp':false, 'jg-fixed':false, 'jg-removing':true, 'jg-fixed':false})
+        exist
+        .classed({'jg-supp':false, 'jg-fixed':false, 'jg-removing':true, 'jg-fixed':false})
+        .each(function(d) {
+          existY = d.targetY;
+          existHeight = d3.select(this).classed('jg-selected') ?
+            (d3.select(this).classed('jg-mouseover')? y.rangeBand():y.rangeBand()*2.25) : 0;
+          d.targetY = y.rangeBand();
+        })
         .transition().duration(duration)
         .style('opacity', 0)
         .each('end', function(){
             d3.select(this).remove()
         })
+        attrs.stackHeight = parseInt(parentSvg.attr('height')) - existHeight;
+      } else {
+        attrs.stackHeight = parseInt(parentSvg.attr('height')) + y.rangeBand();
       }
-      else {
-        var parentSvg = d3.select(svgStack.node().parentNode)
-        attrs.stackHeight += y.rangeBand();
-        parentSvg.attr('height', attrs.stackHeight);
-      }
-
+      parentSvg.attr('height', attrs.stackHeight);
+      
       svgStack.selectAll('.jg-supp.jg-temp.jg-row')
         .classed({'jg-temp':false, 'jg-fixed':true})
         .selectAll('.jg-col').classed({'jg-mouseover':false})
-      var size = svgStack.selectAll('.jg-fixed').size();
-      svgStack.selectAll('.jg-supp.jg-fixed')
-        .transition().duration(duration)
-        .attr("transform", d3.svg.transform().translate(function(d,i) {
-          var dy =  (y.rangeBand())+ ((size-i)*y.rangeBand());
-          return [0,dy]
-        }))
+      var fixed = svgStack.selectAll('.jg-supp.jg-fixed')
+        .each(function(d) {
+          var pos = d3.transform(d3.select(this).attr('transform')).translate
+          if (!('targetY' in d)) d.targetY = pos[1];
+          if(d.targetY <= existY) {
+            d.targetY += y.rangeBand();
+          } else {
+            d.targetY = d.targetY - existHeight;
+          }
+          d3.select(this).transition().duration(duration)
+            .attr('transform', d3.svg.transform().translate([pos[0], d.targetY]));
+        })
     }
   }/// end of clickColFunc;
 

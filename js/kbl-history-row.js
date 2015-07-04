@@ -183,11 +183,12 @@ d3.kblHistoryRow = function module () {
       //var selectedIndex = getIndexOfRow(selectedRow);
       // 중복 인 것
       var dupRows = selectedRow.filter(function(d) {
-        return d.key === thisRow.datum().key;
+        //thisRow.
+        return  d3.select(this).node() === thisRow.node()//d.key === thisRow.datum().key;
       })
       // 중복 아닌 것
       var undupRows = selectedRow.filter(function(d) {
-        return d.key !== thisRow.datum().key;
+        return  d3.select(this).node() !== thisRow.node()
       })
       if (dupRows.size() <= 0 ) {
         thisRow.call(appendRowFunc)
@@ -371,16 +372,8 @@ d3.kblHistoryRow = function module () {
       .isHidden(attrs.isHidden)
 
     col.call(arc);
-    //col.call(drawRankLine);
   }
-  //그리기
 
-  //이벤트 동작
-  //exports.highlight = function (targetName) //외부에서 코치 이름 선택했을때 하이라이트
-  //exports.addBottomRow(this, isOver)
-
-  //bind
-  //
 
   function createAccessorFunc(_attr) {
     function accessor(val) {
