@@ -16,9 +16,30 @@ module.exports = function (grunt) {
           ]
         }
       }
-    }
+    }, //end of concat
+    connect: {
+        dev: {
+            livereload : true
+        }
+    }, //end of http-server
+    watch : {
+      dev: {
+        files: ['*.html'],
+        tasks: []
+      },
+      scripts: {
+        files: ['js/*'],
+        tasks: ['concat:dev']
+      },
+      styles: {
+        files: ['css/*'],
+        tasks: ['concat:dev']
+      }
+    }//end of watch
   });
 
   grunt.loadNpmTasks('grunt-contrib-concat');
-  grunt.registerTask('dev', ['concat:dev']);
+  grunt.loadNpmTasks('grunt-contrib-connect');
+  grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.registerTask('dev', ['concat:dev', 'connect:dev', 'watch']);
 };

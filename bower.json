@@ -1,6 +1,6 @@
 {
   "name": "kbl-history",
-  "version": "0.0.1",
+  "version": "0.5.0",
   "homepage": "https://github.com/wonderino/jaryogujo",
   "authors": [
     "Inho Won <wonderino@gmail.com>"
@@ -17,7 +17,21 @@
     "node_modules",
     "bower_components",
     "test",
-    "tests"
+    "tests",
+    ".DS_Store",
+    ".git",
+    ".gitignore",
+    ".npmignore",
+    ".jshintrc",
+    ".travis.yml",
+    "bin",
+    "coverage",
+    "examples",
+    "index.js",
+    "node_modules",
+    "output",
+    "scripts",
+    "src",
   ],
   "dependencies": {
     "d3": "~3.5.5",
