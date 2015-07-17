@@ -6,6 +6,10 @@ body {
 }
 
 div.jg-content {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-justify-content: center;
+          justify-content: center;
   margin: 10px auto;
   border-spacing : 0px;
   font-weight : 300;
@@ -14,7 +18,17 @@ div.jg-content {
 }
 
 div.jg-chart {
-  margin: 0 auto;
+  /*margin: 0 auto;*/
+}
+
+div.jg-legend {
+  -webkit-flex: none;
+          flex: none;
+  position: fixed;
+  top: 60px;
+  width: 200px;
+  height : 200px;
+  background-color: white;
 }
 
 .jg-menu div {

@@ -18,7 +18,7 @@ d3.kblHistory = function module () {
     'HT':'해태','LT':'롯데','SM':'삼미','LG':'LG','DS':'두산','KA':'KIA',
     'BG':'빙그레','HH':'한화','SK':'SK','NS':'넥센','NC':'NC','SB':'쌍방울',
     'CB':'청보','TP':'태평양','HD':'현대'})
-  var svg, svgYearStat, svgStack, svgTeamStat;
+  var svg, svgYearStat, svgStack, svgTeamStat, svgLegend;
   var teamCoachData, coachTeamData, fixedCoaches=[];
   var width, height;
   var color = d3.scale.category10();
@@ -35,6 +35,8 @@ d3.kblHistory = function module () {
         var menuDiv = d3.select(this).append('div')
           .attr('class', 'jg-menu')
           .call(menuInit)
+
+
         var teamStatDiv = d3.select(this).append('div')
           .attr('class', 'jg-div-team-stat')
         svgTeamStat = teamStatDiv.append('svg')
@@ -74,6 +76,9 @@ d3.kblHistory = function module () {
           .append('g')
           .attr('class', 'jg-stack')
           .attr('transform', d3.svg.transform().translate([0, margin.top/2]));
+        var legendDiv = d3.select(d3.select(this).node().parentNode).append('div')
+            .attr('class', 'jg-legend')
+            .call(legendInit)
 
       }
       svgYearStat.call(svgYearStatInit);
@@ -82,6 +87,10 @@ d3.kblHistory = function module () {
       svgStack.call(svgStackInit);
     }); //end of each
   } // end of exports
+  function legendInit(selection) {
+    console.log(selection)
+    return selection;
+  }
 
   function menuInit(selection) {
     var coaches = coachTeamData.map(function(d){return d.key})
@@ -525,7 +534,6 @@ d3.kblHistory = function module () {
         .classed({'jg-clicked':true})//, 'jg-mouseover':false})
 
       var suppRow = svgStack.selectAll('.jg-supp.jg-temp.jg-row')
-
       var exist = svgStack.selectAll('.jg-fixed.jg-row')
         .filter(function(d){return suppRow.datum().key == d.key})
       var existY = Number.POSITIVE_INFINITY;
@@ -551,7 +559,7 @@ d3.kblHistory = function module () {
         attrs.stackHeight = parseInt(parentSvg.attr('height')) + y.rangeBand();
       }
       parentSvg.attr('height', attrs.stackHeight);
-      
+
       svgStack.selectAll('.jg-supp.jg-temp.jg-row')
         .classed({'jg-temp':false, 'jg-fixed':true})
         .selectAll('.jg-col').classed({'jg-mouseover':false})
