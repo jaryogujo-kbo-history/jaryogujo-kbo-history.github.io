@@ -29,7 +29,10 @@ module.exports = function (grunt) {
       },
       scripts: {
         files: ['js/*'],
-        tasks: ['concat:dev']
+        tasks: ['concat:dev'],
+        options: {
+                livereload: true
+        }
       },
       styles: {
         files: ['css/*'],
