@@ -641,16 +641,8 @@ d3.kblHistoryRow = function module () {
       .isHidden(attrs.isHidden)
 
     col.call(arc);
-    //col.call(drawRankLine);
   }
-  //그리기
 
-  //이벤트 동작
-  //exports.highlight = function (targetName) //외부에서 코치 이름 선택했을때 하이라이트
-  //exports.addBottomRow(this, isOver)
-
-  //bind
-  //
 
   function createAccessorFunc(_attr) {
     function accessor(val) {
@@ -692,7 +684,7 @@ d3.kblHistory = function module () {
     'HT':'해태','LT':'롯데','SM':'삼미','LG':'LG','DS':'두산','KA':'KIA',
     'BG':'빙그레','HH':'한화','SK':'SK','NS':'넥센','NC':'NC','SB':'쌍방울',
     'CB':'청보','TP':'태평양','HD':'현대'})
-  var svg, svgYearStat, svgStack, svgTeamStat;
+  var svg, svgYearStat, svgStack, svgTeamStat, svgLegend;
   var teamCoachData, coachTeamData, fixedCoaches=[];
   var width, height;
   var color = d3.scale.category10();
@@ -709,6 +701,8 @@ d3.kblHistory = function module () {
         var menuDiv = d3.select(this).append('div')
           .attr('class', 'jg-menu')
           .call(menuInit)
+
+
         var teamStatDiv = d3.select(this).append('div')
           .attr('class', 'jg-div-team-stat')
         svgTeamStat = teamStatDiv.append('svg')
@@ -748,6 +742,9 @@ d3.kblHistory = function module () {
           .append('g')
           .attr('class', 'jg-stack')
           .attr('transform', d3.svg.transform().translate([0, margin.top/2]));
+        var legendDiv = d3.select(d3.select(this).node().parentNode).append('div')
+            .attr('class', 'jg-legend')
+            .call(legendInit)
 
       }
       svgYearStat.call(svgYearStatInit);
@@ -756,6 +753,45 @@ d3.kblHistory = function module () {
       svgStack.call(svgStackInit);
     }); //end of each
   } // end of exports
+  function legendInit(selection) {
+
+    var sampleData = [[teamCoachData[0].values[1].values[0][0]], [teamCoachData[1].values[0].values[0][1]]]
+    var arcSize = x.rangeBand() * 3;
+    var sample = selection.append('svg')
+      .attr('class', 'jg-legend-arc-svg')
+      .selectAll('.jg-legend-arc')
+        .data(sampleData)
+      .enter().append('g')
+      .attr('class', 'jg-legend-arc')
+      .attr('transform', d3.svg.transform().translate(function(d,i) {
+        return [0, (arcSize + arcSize*.25)*i]
+      }))
+
+    var arc = d3.kblHistoryArc()
+      .isAvg(true)
+      .width(arcSize)
+      .height(arcSize)
+      .thetaR(thetaR)
+      .thetaRall(thetaRall)
+    sample.call(arc)
+
+    var checkDiv = selection.append('div')
+      .attr('class', 'jg-playoff-check')
+    checkDiv.append('span')
+      .text('플레이오프 진출 및 우승팀 표시')
+    var check = checkDiv.append('input')
+      .attr('id', 'jg-playoff')
+      .property({type:'checkbox', name:'showPlayOff', value:'playOff'})
+      .on('click', function(d) {
+        var checked = d3.select(this).property('checked');
+        svg.selectAll('.jg-col .jg-rank-text')
+          .classed({'jg-hidden':!checked})
+        svgStack.selectAll('.jg-col .jg-rank-text')
+          .classed({'jg-hidden':!checked})
+      })
+
+    return selection;
+  }
 
   function menuInit(selection) {
     var coaches = coachTeamData.map(function(d){return d.key})
@@ -783,22 +819,6 @@ d3.kblHistory = function module () {
         selectCol(coachName, false);
       }
     })
-    //<input type="checkbox" name="vehicle" value="Bike"> I have a bike<br>
-    var checkDiv = selection.append('div')
-      .attr('class', 'jg-playoff-check')
-    checkDiv.append('span')
-      .text('플레이오프 진출 및 우승팀 표시')
-    var check = checkDiv.append('input')
-      .attr('id', 'jg-playoff')
-      .property({type:'checkbox', name:'showPlayOff', value:'playOff'})
-      .on('click', function(d) {
-        var checked = d3.select(this).property('checked');
-        svg.selectAll('.jg-col .jg-rank-text')
-          .classed({'jg-hidden':!checked})
-        svgStack.selectAll('.jg-col .jg-rank-text')
-          .classed({'jg-hidden':!checked})
-      })
-
   }
 
   function dataInit(_data) {
@@ -1199,7 +1219,6 @@ d3.kblHistory = function module () {
         .classed({'jg-clicked':true})//, 'jg-mouseover':false})
 
       var suppRow = svgStack.selectAll('.jg-supp.jg-temp.jg-row')
-
       var exist = svgStack.selectAll('.jg-fixed.jg-row')
         .filter(function(d){return suppRow.datum().key == d.key})
       var existY = Number.POSITIVE_INFINITY;
@@ -1225,7 +1244,7 @@ d3.kblHistory = function module () {
         attrs.stackHeight = parseInt(parentSvg.attr('height')) + y.rangeBand();
       }
       parentSvg.attr('height', attrs.stackHeight);
-      
+
       svgStack.selectAll('.jg-supp.jg-temp.jg-row')
         .classed({'jg-temp':false, 'jg-fixed':true})
         .selectAll('.jg-col').classed({'jg-mouseover':false})

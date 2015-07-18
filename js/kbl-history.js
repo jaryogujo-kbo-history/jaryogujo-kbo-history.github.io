@@ -88,7 +88,42 @@ d3.kblHistory = function module () {
     }); //end of each
   } // end of exports
   function legendInit(selection) {
-    console.log(selection)
+
+    var sampleData = [[teamCoachData[0].values[1].values[0][0]], [teamCoachData[1].values[0].values[0][1]]]
+    var arcSize = x.rangeBand() * 3;
+    var sample = selection.append('svg')
+      .attr('class', 'jg-legend-arc-svg')
+      .selectAll('.jg-legend-arc')
+        .data(sampleData)
+      .enter().append('g')
+      .attr('class', 'jg-legend-arc')
+      .attr('transform', d3.svg.transform().translate(function(d,i) {
+        return [0, (arcSize + arcSize*.25)*i]
+      }))
+
+    var arc = d3.kblHistoryArc()
+      .isAvg(true)
+      .width(arcSize)
+      .height(arcSize)
+      .thetaR(thetaR)
+      .thetaRall(thetaRall)
+    sample.call(arc)
+
+    var checkDiv = selection.append('div')
+      .attr('class', 'jg-playoff-check')
+    checkDiv.append('span')
+      .text('플레이오프 진출 및 우승팀 표시')
+    var check = checkDiv.append('input')
+      .attr('id', 'jg-playoff')
+      .property({type:'checkbox', name:'showPlayOff', value:'playOff'})
+      .on('click', function(d) {
+        var checked = d3.select(this).property('checked');
+        svg.selectAll('.jg-col .jg-rank-text')
+          .classed({'jg-hidden':!checked})
+        svgStack.selectAll('.jg-col .jg-rank-text')
+          .classed({'jg-hidden':!checked})
+      })
+
     return selection;
   }
 
@@ -118,22 +153,6 @@ d3.kblHistory = function module () {
         selectCol(coachName, false);
       }
     })
-    //<input type="checkbox" name="vehicle" value="Bike"> I have a bike<br>
-    var checkDiv = selection.append('div')
-      .attr('class', 'jg-playoff-check')
-    checkDiv.append('span')
-      .text('플레이오프 진출 및 우승팀 표시')
-    var check = checkDiv.append('input')
-      .attr('id', 'jg-playoff')
-      .property({type:'checkbox', name:'showPlayOff', value:'playOff'})
-      .on('click', function(d) {
-        var checked = d3.select(this).property('checked');
-        svg.selectAll('.jg-col .jg-rank-text')
-          .classed({'jg-hidden':!checked})
-        svgStack.selectAll('.jg-col .jg-rank-text')
-          .classed({'jg-hidden':!checked})
-      })
-
   }
 
   function dataInit(_data) {
