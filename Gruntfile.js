@@ -5,10 +5,12 @@ module.exports = function (grunt) {
     concat: {
       dev: {
         files: {
-          'index.js': [
-            'bower_components/d3/d3.min.js',
-            'bower_components/d3-transform/src/d3-transform.js',
+          'kbl-history.js': [
             'js/*.js',
+          ],
+          'lib.js': [
+            'bower_components/d3/d3.min.js',
+            'bower_components/d3-transform/src/d3-transform.js'
           ],
           "index.css" : [
             'bower_components/normalize.css/normalize.css',

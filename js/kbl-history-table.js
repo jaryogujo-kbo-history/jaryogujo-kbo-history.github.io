@@ -89,8 +89,9 @@ d3.kblHistory = function module () {
   } // end of exports
   function legendInit(selection) {
 
-    var sampleData = [[teamCoachData[0].values[1].values[0][0]], [teamCoachData[1].values[0].values[0][1]]]
-    var arcSize = x.rangeBand() * 3;
+    var sampleData = [[Object.create(teamCoachData[0].values[1].values[0][0])]
+    , [Object.create(teamCoachData[1].values[0].values[0][1])]]
+    var arcSize = x.rangeBand() * 2.5;
     var sample = selection.append('svg')
       .attr('class', 'jg-legend-arc-svg')
       .selectAll('.jg-legend-arc')
@@ -102,7 +103,7 @@ d3.kblHistory = function module () {
       }))
 
     var arc = d3.kblHistoryArc()
-      .isAvg(true)
+      //.isAvg()
       .width(arcSize)
       .height(arcSize)
       .thetaR(thetaR)
@@ -123,17 +124,11 @@ d3.kblHistory = function module () {
         svgStack.selectAll('.jg-col .jg-rank-text')
           .classed({'jg-hidden':!checked})
       })
-
-    return selection;
-  }
-
-  function menuInit(selection) {
     var coaches = coachTeamData.map(function(d){return d.key})
-    coaches.splice(0,0, '--특정 감독 살펴보기--')
+    coaches.splice(0,0, '특정 감독 살펴보기')
     var dropdownDiv = selection.append('div')
       .attr('class', 'jg-coach-select')
-    dropdownDiv.append('span')
-      .text('특정 감독 선택하기')
+
     var dropdown = dropdownDiv.append('select')
       .attr('class', 'jg-select')
 
@@ -153,6 +148,11 @@ d3.kblHistory = function module () {
         selectCol(coachName, false);
       }
     })
+    return selection;
+  }
+
+  function menuInit(selection) {
+
   }
 
   function dataInit(_data) {
