@@ -423,10 +423,10 @@ th {
   padding: 0;
 }
 
-@import url(http://fonts.googleapis.com/css?family=Noto+Sans);
+@import url(http://notosanskr-hestia.s3-website-ap-northeast-1.amazonaws.com/stylesheets/NotoSansKR-Hestia.css);
 
 body {
-  font-family : 'Noto Sans',"Apple SD Gothic Neo", "Malgun Gothic",Dotum,sans-serif;
+  font-family : 'Noto Sans Korean','Open Sans',sans-serif;
   background: #222;
 }
 
@@ -451,19 +451,57 @@ div.jg-legend {
           flex: none;
   position: fixed;
   top: 60px;
-  width: 100px;
-  height : 200px;
-  background-color: white;
+  /*background-color: white;*/
+  padding : 5px;
+  color: #ddd;
+
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 4px;
+}
+.jg-legend > div {
+  margin : 7px auto;
+}
+
+.jg-legend div.jg-playoff-check {
+  font-size : 9.5px;
+}
+.jg-legend .jg-rank-text {
+  font-size : 22px;
+}
+
+.jg-legend .jg-legend-arc {
+  fill : #8A8A8A;
+}
+.jg-legend .jg-rank-hand {
+  stroke-width : 3px;
+}
+.jg-legend .jg-legend-back {
+  stroke : #8A8A8A;
+  fill : none;
+  stroke-dasharray : 2,3;
+}
+.jg-legend text {
+  stroke : none;
+}
+.jg-legend .jg-legend-arrow {
+  font-size : 8px;
+}
+.jg-legend .jg-legend-index.jg-r {
+  fill : #1698d8;
+}
+.jg-legend .jg-legend-index.jg-rall {
+  fill : #f6b900;
+}
+
+.jg-legend #jg-playoff {
+  margin-left : 11px;
 }
 
 .jg-menu div {
   margin : 10px;
 }
 
-.jg-menu div > span {
-  color : #ddd;
-  padding : 4px;
-}
 
 .jg-label, .jg-axis text, .jg-row.jg-avg text {
   fill : #bbb;
@@ -600,17 +638,37 @@ circle.jg-link {
   fill : #e8e9e8;
 }
 
-.jg-col .jg-rank-text.jg-hidden > circle {
- visibility: hidden;
+.jg-rank-text .jg-number {
+  fill : #fff;
+}
+
+.jg-rank-text.jg-hidden .jg-number {
+ fill : #8a8a8a;
 }
 
 
+.jg-rank-text .jg-star {
+  font-size: 6px;
+}
+
+.jg-legend .jg-rank-text .jg-star {
+  font-size: 12px;
+}
+
+.jg-rank-text.korean-season .jg-star {
+  fill : #8a8a8a;
+}
+.jg-rank-text.champion .jg-star {
+  fill : #fff;
+}
+
+.jg-rank-text.jg-hidden .jg-star {
+ visibility: hidden;
+}
 
 .jg-row.jg-avg .jg-col .jg-back {
   fill : #aaa;
 }
-
-
 g.jg-col .jg-back {
   fill:#aaa;
 }
@@ -635,8 +693,4 @@ g.jg-col:nth-child(even) .jg-back{
 
 .jg-bottom-row .jg-coach-name {
   fill:#777;
-}
-
-#jg-playoff {
-  color : #ddd;
 }

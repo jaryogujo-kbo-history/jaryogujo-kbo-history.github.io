@@ -18,7 +18,7 @@ d3.kblHistory = function module () {
     'HT':'해태','LT':'롯데','SM':'삼미','LG':'LG','DS':'두산','KA':'KIA',
     'BG':'빙그레','HH':'한화','SK':'SK','NS':'넥센','NC':'NC','SB':'쌍방울',
     'CB':'청보','TP':'태평양','HD':'현대'})
-  var svg, svgYearStat, svgStack, svgTeamStat, svgLegend;
+  var svg, svgYearStat, svgStack, svgTeamStat, svgLegend, legendDiv;
   var teamCoachData, coachTeamData, fixedCoaches=[];
   var width, height;
   var color = d3.scale.category10();
@@ -76,7 +76,7 @@ d3.kblHistory = function module () {
           .append('g')
           .attr('class', 'jg-stack')
           .attr('transform', d3.svg.transform().translate([0, margin.top/2]));
-        var legendDiv = d3.select(d3.select(this).node().parentNode).append('div')
+        legendDiv = d3.select(d3.select(this).node().parentNode).append('div')
             .attr('class', 'jg-legend')
             .call(legendInit)
 
@@ -88,9 +88,10 @@ d3.kblHistory = function module () {
     }); //end of each
   } // end of exports
   function legendInit(selection) {
-
-    var sampleData = [[Object.create(teamCoachData[0].values[1].values[0][0])]
-    , [Object.create(teamCoachData[1].values[0].values[0][1])]]
+    var w = 145, h = 209;
+    selection.style('height', h+'px').style('width', w+'px')
+    var sampleData = [[Object.create(teamCoachData[0].values[1].values[0][0])]]
+    //, [Object.create(teamCoachData[1].values[0].values[0][1])]]
     var arcSize = x.rangeBand() * 2.5;
     var sample = selection.append('svg')
       .attr('class', 'jg-legend-arc-svg')
@@ -99,7 +100,7 @@ d3.kblHistory = function module () {
       .enter().append('g')
       .attr('class', 'jg-legend-arc')
       .attr('transform', d3.svg.transform().translate(function(d,i) {
-        return [0, (arcSize + arcSize*.25)*i]
+        return [w/2 - arcSize/2, h/2-arcSize/2]
       }))
 
     var arc = d3.kblHistoryArc()
@@ -108,6 +109,7 @@ d3.kblHistory = function module () {
       .height(arcSize)
       .thetaR(thetaR)
       .thetaRall(thetaRall)
+      .isLegend(true)
     sample.call(arc)
 
     var checkDiv = selection.append('div')
@@ -119,9 +121,11 @@ d3.kblHistory = function module () {
       .property({type:'checkbox', name:'showPlayOff', value:'playOff'})
       .on('click', function(d) {
         var checked = d3.select(this).property('checked');
-        svg.selectAll('.jg-col .jg-rank-text')
+        svg.selectAll('.jg-col .jg-rank-text.playoff')
           .classed({'jg-hidden':!checked})
-        svgStack.selectAll('.jg-col .jg-rank-text')
+        svgStack.selectAll('.jg-col .jg-rank-text.playoff')
+          .classed({'jg-hidden':!checked})
+        legendDiv.selectAll('.jg-rank-text.playoff')
           .classed({'jg-hidden':!checked})
       })
     var coaches = coachTeamData.map(function(d){return d.key})

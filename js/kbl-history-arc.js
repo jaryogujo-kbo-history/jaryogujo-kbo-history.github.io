@@ -8,7 +8,8 @@ d3.kblHistoryArc = function () {
     maxRank :9,
     thetaR : null,
     thetaRall : null,
-    isHidden : true
+    isHidden : true,
+    isLegend : false
   }
 
   var lineX = d3.scale.ordinal(), lineY = d3.scale.ordinal()
@@ -27,25 +28,31 @@ d3.kblHistoryArc = function () {
 
   function drawRankArc(col) {
     var isAvg = attrs.isAvg;
+
     if (!isAvg) {
       var rank = col.selectAll('.jg-rank-text')
           .data(function(d){return d;})
         .enter().append('g')
         .attr('class', 'jg-rank-text' + (attrs.isHidden? ' jg-hidden' : ''))
-        .attr('transform', d3.svg.transform().translate(function(d,i){
-          return [i*attrs.width, 0]
-        }))
-
-      rank.append('circle')
         .each(function(d) {
           d3.select(this).classed({'playoff': (d.playoff==1),
           'korean-season':(d.champion>0),
           'champion':(d.champion==1)})
         })
-        .attr('cx', radius*.5).attr('cy', radius*.5+1)
-        .attr('r', radius*.5+1)
+        .attr('transform', d3.svg.transform().translate(function(d,i){
+          return [i*attrs.width, 0]
+        }))
+
+      rank.filter(function(){
+        return d3.select(this).classed('korean-season')
+      }).append('text')
+        .attr('class', 'jg-star')
+        .attr('text-anchor', 'middle')
+        .attr('dy', '.35em')
+        .text('★')
 
       rank.append('text')
+        .attr('class', 'jg-number')
         .attr('dx', '.175em')
         .attr('dy', '.9em')
         .text(function(d) {return d.season_rank}) //FIXME : 나중에 고침
@@ -55,10 +62,14 @@ d3.kblHistoryArc = function () {
     var clock = col.selectAll('.jg-rank-clock')
         .data(function(d){return d;})
 
+
     clock.enter().append('g')
       .attr('class', 'jg-rank-clock')
       .attr('transform', d3.svg.transform().translate(function(d,i) {return [i*attrs.width, 0]}))
       .call(drawBackArc);
+    if (attrs.isLegend) {
+      clock.call(drawLegend);
+    }
 
     clock.each(function(d,i) {
       var thisSelection = d3.select(this);
@@ -81,6 +92,60 @@ d3.kblHistoryArc = function () {
         }
       }
     })
+  }
+
+  function drawLegend (selection) {
+    var arc = d3.svg.arc()
+      .innerRadius(radius*1.25)
+      .outerRadius(radius*1.25)
+      .startAngle(attrs.thetaR.range()[0])
+      .endAngle(attrs.thetaR.range()[1]);
+
+    selection.append('path')
+      .attr('class', 'jg-legend-back')
+      .attr('transform', d3.svg.transform().translate(function(){
+          return [attrs.width*.5, attrs.height*.5]
+        }))
+      .attr('d', arc)
+
+    selection.append("text")
+      .attr('class', 'jg-legend-arrow')
+      .attr('transform', d3.svg.transform().rotate(180))
+      .attr('x', -attrs.width/2)
+      .attr('dy', '.71em')
+      .text('➤')
+
+    selection.selectAll('jg-legend-range')
+      .data(['낮음 –', '높음'])
+    .enter().append('text')
+      .attr('class', 'jg-legend-range')
+      .attr('x', function(d,i) {
+        if (i==0) return '-2.5em';
+        else return attrs.width/2;
+      })
+      .attr('y', function(d,i) {
+        if (i==0) return attrs.height/2;
+        else return '-1.35em';
+      })
+      .attr('dy', '.35em')
+      .text(function(d){return d})
+
+    selection.selectAll('jg-legend-index')
+      .data(['수비력', '공격력'])
+    .enter().append('text')
+      .attr('class', function(d,i) {
+        return 'jg-legend-index ' + (i==0 ? 'jg-rall' : 'jg-r')
+      })
+      .attr('x', attrs.width/2)
+      .attr('dx', '2.75em')
+      .attr('y', function(d,i) {
+        return i==0 ? attrs.height*.05 : attrs.height*.95;
+      })
+      .attr('dy', '.35em')
+      .text(function(d){return d})
+
+      //.style('fill', col.select('rect').style('fill'));
+    return selection
   }
 
 
