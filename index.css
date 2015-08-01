@@ -520,7 +520,9 @@ div.jg-legend {
 .jg-label {
   cursor : pointer;
 }
-
+.jg-axis text {
+  fill : #fff;
+}
 .jg-axis path, .jg-axis line{
   display : none;
 }
@@ -634,7 +636,7 @@ circle.jg-link {
 }
 
 .jg-rank-text.jg-hidden .jg-number {
- fill : #8a8a8a;
+ fill : #585858;
 }
 
 
