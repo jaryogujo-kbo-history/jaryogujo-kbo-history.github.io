@@ -49,7 +49,7 @@ d3.kblHistoryArc = function () {
         .attr('class', 'jg-star')
         .attr('text-anchor', 'middle')
         .attr('dy', '.35em')
-        .text('★')
+        .text(function(d){return d.champion ==1 ? '●':'○'} )
 
       rank.append('text')
         .attr('class', 'jg-number')
@@ -115,6 +115,12 @@ d3.kblHistoryArc = function () {
       .attr('dy', '.71em')
       .text('➤')
 
+    selection.append("text")
+      .attr('class', 'jg-legend-rank')
+      .attr('x', -attrs.width * .75)
+      .attr('dy', '1em')
+      .text('순위 ⸻')
+
     selection.selectAll('jg-legend-range')
       .data(['낮음 –', '높음'])
     .enter().append('text')
@@ -142,6 +148,20 @@ d3.kblHistoryArc = function () {
         return i==0 ? attrs.height*.05 : attrs.height*.95;
       })
       .attr('dy', '.35em')
+      .text(function(d){return d})
+
+    selection.selectAll('jg-legend-star')
+      .data(['● 우승', '○ 준우승'])
+    .enter().append('text')
+      .attr('class', function(d,i) {
+        return 'jg-legend-star ' + (i==0 ? 'champion' : 'korean-season')
+      })
+      .attr('x', attrs.width*1.5)
+      .attr('dx', '-2em')
+      .attr('y', function(d,i) {
+        return -attrs.height + i*12;
+      })
+      .attr('dy', '-1em')
       .text(function(d){return d})
 
       //.style('fill', col.select('rect').style('fill'));
@@ -778,6 +798,8 @@ d3.kblHistory = function module () {
   function legendInit(selection) {
     var w = 145, h = 209;
     selection.style('height', h+'px').style('width', w+'px')
+
+    
     var sampleData = [[Object.create(teamCoachData[0].values[1].values[0][0])]]
     //, [Object.create(teamCoachData[1].values[0].values[0][1])]]
     var arcSize = x.rangeBand() * 2.5;

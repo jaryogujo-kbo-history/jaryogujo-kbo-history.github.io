@@ -37,11 +37,13 @@ div.jg-legend {
 .jg-legend > div {
   margin : 7px auto;
 }
-
+.jg-legend text {
+  font-size : 10px;
+}
 .jg-legend div.jg-playoff-check {
   font-size : 9.5px;
 }
-.jg-legend .jg-rank-text {
+.jg-legend .jg-rank-text .jg-number {
   font-size : 22px;
 }
 
@@ -69,6 +71,14 @@ div.jg-legend {
   fill : #f6b900;
 }
 
+.jg-legend .jg-legend-star {
+  fill : #fff;
+}
+/*
+.jg-legend .jg-legend-star.champion {
+  fill : #fff;
+}
+*/
 .jg-legend #jg-playoff {
   margin-left : 11px;
 }
@@ -95,25 +105,6 @@ div.jg-legend {
   display : inherit;
   shape-rendering: crispEdges;
   stroke: #777;
-}
-
-
-.jg-rank-text > circle{
-  stroke : none;
-  fill : none;
-}
-
-.jg-rank-text > circle.playoff{
-  fill : #bbb ;
-  /*stroke-width : 1px;*/
-  fill-opacity : .55;
-}
-.jg-rank-text > circle.korean-season{
-  fill : #1698d8;
-}
-
-.jg-rank-text > circle.champion{
-  fill : #f6b900;
 }
 
 .jg-rank-text > text{
@@ -223,17 +214,14 @@ circle.jg-link {
 
 
 .jg-rank-text .jg-star {
-  font-size: 6px;
+  font-size: 4px;
 }
 
 .jg-legend .jg-rank-text .jg-star {
-  font-size: 12px;
+  font-size: 8px;
 }
 
 .jg-rank-text.korean-season .jg-star {
-  fill : #8a8a8a;
-}
-.jg-rank-text.champion .jg-star {
   fill : #fff;
 }
 

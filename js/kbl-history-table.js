@@ -90,6 +90,8 @@ d3.kblHistory = function module () {
   function legendInit(selection) {
     var w = 145, h = 209;
     selection.style('height', h+'px').style('width', w+'px')
+
+    
     var sampleData = [[Object.create(teamCoachData[0].values[1].values[0][0])]]
     //, [Object.create(teamCoachData[1].values[0].values[0][1])]]
     var arcSize = x.rangeBand() * 2.5;
