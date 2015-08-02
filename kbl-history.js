@@ -161,8 +161,15 @@ d3.kblHistoryArc = function () {
       .attr('y', function(d,i) {
         return -attrs.height + i*12;
       })
-      .attr('dy', '-1em')
+      .attr('dy', '-1.35em')
       .text(function(d){return d})
+
+    selection.append("text")
+      .attr('class', 'jg-legend-title')
+      .attr('x', -attrs.width * .75)
+      .attr('y', -attrs.height)
+      .attr('dy', '-.71em')
+      .text('범례')
 
       //.style('fill', col.select('rect').style('fill'));
     return selection

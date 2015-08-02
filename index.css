@@ -434,7 +434,7 @@ div.jg-head {
   margin : 77px auto 40px auto;
   padding-left : 155px;
   width : 820px;
-
+  font-size: 11px;
 }
 
 div.jg-head > div.jg-link, div.jg-head > div.jg-title {
@@ -447,7 +447,6 @@ div.jg-head > div.jg-title {
 }
 
 div.jg-head > div.jg-link  {
-  font-size: 11px;
   padding-left : 41px;
   vertical-align: 50%;
 }
@@ -459,7 +458,7 @@ div.jg-head > div.jg-link >a {
 div.jg-head > div.jg-title {
   color : #fff;
 }
-div.jg-head > div.jg-title > span {
+div.jg-head > div.jg-title > span, div.jg-foot > div.jg-title > span {
   color : #39BEFF;
 }
 
@@ -467,6 +466,14 @@ div.jg-head > div.jg-desc {
   padding-top:6px;
   color : #8A8A8A;
   font-size : 11px;
+}
+
+div.jg-foot {
+  color : #fff;
+  font-size: 11px;
+  margin : 0 auto 80px auto;
+  padding-left : 155px;
+  width : 820px;
 }
 
 div.jg-content {
@@ -545,6 +552,11 @@ div.jg-legend {
 */
 .jg-legend #jg-playoff {
   margin-left : 11px;
+}
+
+.jg-legend .jg-legend-title {
+  font-size : 13px;
+  fill : #fff;
 }
 
 .jg-menu div {
