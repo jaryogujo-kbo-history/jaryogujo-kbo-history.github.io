@@ -430,6 +430,45 @@ body {
   background: #222;
 }
 
+div.jg-head {
+  margin : 77px auto 40px auto;
+  padding-left : 155px;
+  width : 820px;
+
+}
+
+div.jg-head > div.jg-link, div.jg-head > div.jg-title {
+  display : inline-block;
+}
+
+div.jg-head > div.jg-title {
+  padding-top : 31px;
+  font-size:31px;
+}
+
+div.jg-head > div.jg-link  {
+  font-size: 11px;
+  padding-left : 41px;
+  vertical-align: 50%;
+}
+
+div.jg-head > div.jg-link >a {
+  color:#39BEFF;
+}
+
+div.jg-head > div.jg-title {
+  color : #fff;
+}
+div.jg-head > div.jg-title > span {
+  color : #39BEFF;
+}
+
+div.jg-head > div.jg-desc {
+  padding-top:6px;
+  color : #8A8A8A;
+  font-size : 11px;
+}
+
 div.jg-content {
   display: -webkit-flex;
   display: flex;
