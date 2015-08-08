@@ -31,6 +31,18 @@
     d3.select('div.jg-head').style('visibility', 'visible');
     d3.select('div.jg-foot').style('visibility', 'visible');
     d3.select('div.jg-article.jg-team').style('display', 'none');
+
+    function turnOnOff(on, off) {
+      d3.select('div.jg-menu a.'+on).on('click', function(){
+        d3.select(this).classed({'jg-on':true})
+        d3.select('div.jg-menu a.'+off).classed({'jg-on':false})
+        d3.select('div.jg-article.'+on).style('display', 'block')
+        d3.select('div.jg-article.'+off).style('display', 'none')
+      })
+    }
+    turnOnOff('jg-coach', 'jg-team')
+    turnOnOff('jg-team', 'jg-coach')
+
   </script>
 </body>
 </html>
