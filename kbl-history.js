@@ -44,12 +44,12 @@ d3.kblHistoryArc = function () {
         }))
 
       rank.filter(function(){
-        return d3.select(this).classed('korean-season')
+        return d3.select(this).classed('korean-season') || attrs.isLegend
       }).append('text')
         .attr('class', 'jg-star')
         .attr('text-anchor', 'middle')
         .attr('dy', '.35em')
-        .text(function(d){return d.champion ==1 ? '●':'○'} )
+        .text(function(d){return d.champion ==1 || attrs.isLegend ? '●':'○'} )
 
       rank.append('text')
         .attr('class', 'jg-number')
@@ -161,14 +161,14 @@ d3.kblHistoryArc = function () {
       .attr('y', function(d,i) {
         return -attrs.height + i*12;
       })
-      .attr('dy', '-1.35em')
+      .attr('dy', '-.71em')
       .text(function(d){return d})
 
     selection.append("text")
       .attr('class', 'jg-legend-title')
       .attr('x', -attrs.width * .75)
       .attr('y', -attrs.height)
-      .attr('dy', '-.71em')
+      .attr('dy', '-.35em')
       .text('범례')
 
       //.style('fill', col.select('rect').style('fill'));
@@ -722,6 +722,7 @@ d3.kblHistory = function module () {
     isTeamMode : true,
     blockColExtent : [],
   };//end of attributes
+  var dispatch = d3.dispatch("rendered")
   var margin = {top:20, right : 10, bottom : 10, left : 70}
   var x = d3.scale.ordinal(), y=d3.scale.ordinal(),
     yearYR=d3.scale.linear().rangeRound([attrs.yearStatHeight-margin.top, 0]),
@@ -801,12 +802,12 @@ d3.kblHistory = function module () {
       svg.call(tableInit);
       svgStack.call(svgStackInit);
     }); //end of each
+    dispatch.rendered("rendered");
   } // end of exports
   function legendInit(selection) {
-    var w = 145, h = 209;
+    var w = 145, h = 227;
     selection.style('height', h+'px').style('width', w+'px')
 
-    
     var sampleData = [[Object.create(teamCoachData[0].values[1].values[0][0])]]
     //, [Object.create(teamCoachData[1].values[0].values[0][1])]]
     var arcSize = x.rangeBand() * 2.5;
@@ -817,7 +818,7 @@ d3.kblHistory = function module () {
       .enter().append('g')
       .attr('class', 'jg-legend-arc')
       .attr('transform', d3.svg.transform().translate(function(d,i) {
-        return [w/2 - arcSize/2, h/2-arcSize/2]
+        return [w/2 - arcSize/2, h/2-arcSize*.75]
       }))
 
     var arc = d3.kblHistoryArc()
@@ -828,16 +829,18 @@ d3.kblHistory = function module () {
       .thetaRall(thetaRall)
       .isLegend(true)
     sample.call(arc)
-
-    var checkDiv = selection.append('div')
+    selection.append('hr')
+    var checkPlayOffDiv = selection.append('div')
       .attr('class', 'jg-playoff-check')
-    checkDiv.append('span')
+    checkPlayOffDiv.append('span')
       .text('플레이오프 진출 및 우승팀 표시')
-    var check = checkDiv.append('input')
+
+    checkPlayOffDiv.append('input')
       .attr('id', 'jg-playoff')
       .property({type:'checkbox', name:'showPlayOff', value:'playOff'})
       .on('click', function(d) {
         var checked = d3.select(this).property('checked');
+        checkChampDiv.select('input').property('checked', false);
         svg.selectAll('.jg-col .jg-rank-text.playoff')
           .classed({'jg-hidden':!checked})
         svgStack.selectAll('.jg-col .jg-rank-text.playoff')
@@ -845,8 +848,35 @@ d3.kblHistory = function module () {
         legendDiv.selectAll('.jg-rank-text.playoff')
           .classed({'jg-hidden':!checked})
       })
+
+    var checkChampDiv = selection.append('div')
+      .attr('class', 'jg-playoff-check')
+    checkChampDiv.append('span')
+      .text('우승팀만 표시')
+    checkChampDiv.append('input')
+      .attr('id', 'jg-playoff')
+      .property({type:'checkbox', name:'showPlayOff', value:'playOff'})
+      .on('click', function(d) {
+        checkPlayOffDiv.select('input').property('checked', false);
+        var checked = d3.select(this).property('checked');
+        if (checked) {
+          svg.selectAll('.jg-col .jg-rank-text.playoff')
+            .classed({'jg-hidden':checked})
+          svgStack.selectAll('.jg-col .jg-rank-text.playoff')
+            .classed({'jg-hidden':checked})
+          legendDiv.selectAll('.jg-rank-text.playoff')
+            .classed({'jg-hidden':checked})
+        }
+        svg.selectAll('.jg-col .jg-rank-text.champion')
+          .classed({'jg-hidden':!checked})
+        svgStack.selectAll('.jg-col .jg-rank-text.champion')
+          .classed({'jg-hidden':!checked})
+        legendDiv.selectAll('.jg-rank-text.playoff')
+          .classed({'jg-hidden':!checked})
+      })
+
     var coaches = coachTeamData.map(function(d){return d.key})
-    coaches.splice(0,0, '특정 감독 살펴보기')
+    coaches.splice(0,0, '⚾︎ 특정 감독 살펴보기  ▾')
     var dropdownDiv = selection.append('div')
       .attr('class', 'jg-coach-select')
 
@@ -857,7 +887,7 @@ d3.kblHistory = function module () {
         .data(coaches)
       .enter().append('option')
       .property(function(d){ return {'value':d}})
-      .text(function(d){return d})
+      .html(function(d){return d})
 
     dropdown.on('change', function() {
       var selectedIndex = d3.select(this).property('selectedIndex');
@@ -1365,6 +1395,6 @@ d3.kblHistory = function module () {
       exports[attr] = createAccessorFunc(attr);
     }
   }
-
+  d3.rebind(exports, dispatch, 'on');
   return exports;
 }

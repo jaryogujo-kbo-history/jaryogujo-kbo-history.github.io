@@ -44,12 +44,12 @@ d3.kblHistoryArc = function () {
         }))
 
       rank.filter(function(){
-        return d3.select(this).classed('korean-season')
+        return d3.select(this).classed('korean-season') || attrs.isLegend
       }).append('text')
         .attr('class', 'jg-star')
         .attr('text-anchor', 'middle')
         .attr('dy', '.35em')
-        .text(function(d){return d.champion ==1 ? '●':'○'} )
+        .text(function(d){return d.champion ==1 || attrs.isLegend ? '●':'○'} )
 
       rank.append('text')
         .attr('class', 'jg-number')
@@ -161,14 +161,14 @@ d3.kblHistoryArc = function () {
       .attr('y', function(d,i) {
         return -attrs.height + i*12;
       })
-      .attr('dy', '-1.35em')
+      .attr('dy', '-.71em')
       .text(function(d){return d})
 
     selection.append("text")
       .attr('class', 'jg-legend-title')
       .attr('x', -attrs.width * .75)
       .attr('y', -attrs.height)
-      .attr('dy', '-.71em')
+      .attr('dy', '-.35em')
       .text('범례')
 
       //.style('fill', col.select('rect').style('fill'));

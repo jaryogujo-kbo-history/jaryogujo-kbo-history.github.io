@@ -19,16 +19,21 @@
   </div>
   <div class="jg-foot">
     <div class="jg-title"><span>감독</span>으로 보는 한국프로야구 역사</div>
-    <div class="jg-logo"></div>
+    <div class="jg-logo"><hr class="jg-left"><img src="image/logo/logo@2x.png"><hr class="jg-right"></hr></div>
   </div>
 
   <script src="lib.js"></script>
   <script src="kbl-history.js"></script>
   <script>
     var kblHistoryDm = d3.kblHistoryDataMng()
+    var chart = d3.kblHistory();
+    chart.on('rendered', function(d){
+      d3.select('div.jg-head').style('visibility', 'visible');
+      d3.select('div.jg-foot').style('visibility', 'visible');
+    })
     kblHistoryDm.loadCsv('data/kbl-team-history.csv')
+
     kblHistoryDm.on('dataReady', function(d) {
-      var chart = d3.kblHistory();
       d3.select('div.jg-chart')
         .datum(d)
         .call(chart);

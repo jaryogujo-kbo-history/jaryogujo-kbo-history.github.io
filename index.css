@@ -429,7 +429,9 @@ body {
   font-family : 'Noto Sans Korean','Open Sans',sans-serif;
   background: #222;
 }
-
+div.jg-head, div.jg-foot   {
+  visibility: hidden;
+}
 div.jg-head {
   margin : 77px auto 40px auto;
   padding-left : 155px;
@@ -472,8 +474,31 @@ div.jg-foot {
   color : #fff;
   font-size: 11px;
   margin : 0 auto 80px auto;
-  padding-left : 155px;
+  padding-left : 72px;
   width : 820px;
+}
+
+div.jg-foot > div.jg-title, div.jg-foot > div.jg-logo {
+  display : inline-block;
+}
+
+div.jg-foot > div.jg-logo > hr {
+  display : inline-block;
+  border-color : #39BEFF;
+}
+div.jg-foot > div.jg-logo > hr.jg-left {
+  width : 214px;
+}
+
+div.jg-foot > div.jg-logo > hr.jg-right {
+  width : 312px;;
+}
+
+div.jg-foot > div.jg-logo > img {
+  padding : 0 10px 0 10px;
+  width : 81px;
+  height : 32px;
+  vertical-align: middle;
 }
 
 div.jg-content {
@@ -504,6 +529,7 @@ div.jg-legend {
   border-style: solid;
   border-width: 1px;
   border-radius: 4px;
+  fill : #b7c2c2;
 }
 .jg-legend > div {
   margin : 7px auto;
@@ -542,8 +568,24 @@ div.jg-legend {
   fill : #f6b900;
 }
 
-.jg-legend .jg-legend-star {
+.jg-legend .jg-star, .jg-legend .jg-legend-star {
   fill : #fff;
+}
+
+.jg-legend hr {
+  margin : 0 -5px;
+}
+
+.jg-legend .jg-coach-select > select {
+  width: 146px;
+  height : 22px;
+  font-size : 10px;
+  color : #000;
+  padding-left:12px;
+  background-color : #E2E2E2;
+  font-weight: normal;
+  -moz-appearance: none;
+  -webkit-appearance: none;
 }
 /*
 .jg-legend .jg-legend-star.champion {
