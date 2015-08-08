@@ -748,10 +748,11 @@ d3.kblHistory = function module () {
       height =  attrs.canvasHeight - margin.top - margin.bottom;
       dataInit(_data);
       if (!svg) {
+        /*
         var menuDiv = d3.select(this).append('div')
           .attr('class', 'jg-menu')
           .call(menuInit)
-
+        */
 
         var teamStatDiv = d3.select(this).append('div')
           .attr('class', 'jg-div-team-stat')
@@ -900,10 +901,6 @@ d3.kblHistory = function module () {
       }
     })
     return selection;
-  }
-
-  function menuInit(selection) {
-
   }
 
   function dataInit(_data) {
@@ -1328,7 +1325,10 @@ d3.kblHistory = function module () {
       } else {
         attrs.stackHeight = parseInt(parentSvg.attr('height')) + y.rangeBand();
       }
-      parentSvg.attr('height', attrs.stackHeight);
+
+      parentSvg.transition()
+        .duration(400)
+        .attr('height', attrs.stackHeight);
 
       svgStack.selectAll('.jg-supp.jg-temp.jg-row')
         .classed({'jg-temp':false, 'jg-fixed':true})

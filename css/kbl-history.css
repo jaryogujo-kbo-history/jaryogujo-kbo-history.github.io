@@ -352,3 +352,17 @@ g.jg-col:nth-child(even) .jg-back{
 .jg-bottom-row .jg-coach-name {
   fill:#777;
 }
+
+.jg-menu a {
+  color : #39BEFF;
+  opacity: .5;
+  text-decoration: underline;;
+  cursor : pointer;
+  padding : 10px 20px;
+  font-size : 12px;
+}
+
+.jg-menu a.jg-on {
+  opacity : 1;
+
+}
