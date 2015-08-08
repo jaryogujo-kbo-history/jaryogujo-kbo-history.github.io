@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>감독으로 보는 한국프로야구 역사</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+<link rel=stylesheet href="index.css" type="text/css" media=screen>
+</head>
+<body>
+  <div class="jg-head">
+    <div class="jg-title"><span>감독</span>으로 보는 한국프로야구 역사</div>
+    <div class="jg-link"><a href="index.html">시각화 다시 보기</a></div>
+    <div class="jg-desc">감독으로 보는 한국프로야구 역사 감독으로 보는 한국프로야구 역사</div>
+  </div>
+  <div class="jg-content">
+    <div class="jg-menu">
+      <a class="jg-coach jg-on">감독에 관해서</a>
+      <a class="jg-team">구단에 관해서</a>
+    </div>
+    <div class="jg-article jg-coach"></div>
+    <div class="jg-article jg-team"></div>
+  </div>
+  <div class="jg-foot">
+    <div class="jg-title"><span>감독</span>으로 보는 한국프로야구 역사</div>
+    <div class="jg-logo"><hr class="jg-left"><img src="image/logo/logo@2x.png"><hr class="jg-right"></hr></div>
+  </div>
+
+  <script src="lib.js"></script>
+  <script src="kbl-history.js"></script>
+  <script>
+    d3.select('div.jg-head').style('visibility', 'visible');
+    d3.select('div.jg-foot').style('visibility', 'visible');
+    d3.select('div.jg-article.jg-team').style('display', 'none');
+  </script>
+</body>
+</html>
