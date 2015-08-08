@@ -8,7 +8,11 @@ d3.kblHistoryDataMng = function () {
     loadCsv.on('progress', function() {
       dispatch.dataLoading(d3.event.loaded);
     });
+    return loadCsv;
+  }
 
+  exports.loadHistoryCsv = function(_path) {
+    var loadCsv = exports.loadCsv(_path);
     loadCsv.get(function(_err, _res) {
       _res.forEach(function(d) {
         //clean data!!
@@ -24,7 +28,14 @@ d3.kblHistoryDataMng = function () {
       data = _res;
       dispatch.dataReady(_res);
     })
+  }
 
+  exports.loadArticleCsv = function(_path) {
+    var loadCsv = exports.loadCsv(_path);
+    loadCsv.get(function(_err, _res) {
+      data = _res;
+      dispatch.dataReady(_res);
+    })
   }
 
   exports.data = function () {

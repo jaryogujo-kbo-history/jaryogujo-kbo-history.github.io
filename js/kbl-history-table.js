@@ -680,6 +680,12 @@ d3.kblHistory = function module () {
       exports[attr] = createAccessorFunc(attr);
     }
   }
+
+  exports.data = function(_data) {
+    dataInit(_data);
+    return {team:teamCoachData, coach:coachTeamData}
+  }
+
   d3.rebind(exports, dispatch, 'on');
   return exports;
 }
