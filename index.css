@@ -447,6 +447,14 @@ div.jg-head > div.jg-title {
   padding-top : 31px;
   font-size:31px;
 }
+div.jg-head > div.jg-title > a {
+  text-decoration: none;
+  color : #fff;
+}
+div.jg-head > div.jg-title > a:visited {
+  text-decoration: none;
+  color : #fff;
+}
 
 div.jg-head > div.jg-link  {
   padding-left : 41px;
@@ -457,10 +465,8 @@ div.jg-head > div.jg-link >a {
   color:#39BEFF;
 }
 
-div.jg-head > div.jg-title {
-  color : #fff;
-}
-div.jg-head > div.jg-title > span, div.jg-foot > div.jg-title > span {
+div.jg-head > div.jg-title > a > span,
+div.jg-foot > div.jg-title > span {
   color : #39BEFF;
 }
 

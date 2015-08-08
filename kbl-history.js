@@ -279,6 +279,15 @@ d3.kblHistoryArc = function () {
   return exports;
 }
 
+d3.kblHistoryArticle = function module () {
+  var exports = function(_selection) {
+    _selection.each(function(_data) {
+
+    })
+  }
+  return exports;
+}
+
 d3.kblHistoryDataMng = function () {
   var exports = {},
     dispatch = d3.dispatch('dataReady', 'dataLoading'),
@@ -289,7 +298,11 @@ d3.kblHistoryDataMng = function () {
     loadCsv.on('progress', function() {
       dispatch.dataLoading(d3.event.loaded);
     });
+    return loadCsv;
+  }
 
+  exports.loadHistoryCsv = function(_path) {
+    var loadCsv = exports.loadCsv(_path);
     loadCsv.get(function(_err, _res) {
       _res.forEach(function(d) {
         //clean data!!
@@ -305,7 +318,14 @@ d3.kblHistoryDataMng = function () {
       data = _res;
       dispatch.dataReady(_res);
     })
+  }
 
+  exports.loadArticleCsv = function(_path) {
+    var loadCsv = exports.loadCsv(_path);
+    loadCsv.get(function(_err, _res) {
+      data = _res;
+      dispatch.dataReady(_res);
+    })
   }
 
   exports.data = function () {
@@ -1395,6 +1415,12 @@ d3.kblHistory = function module () {
       exports[attr] = createAccessorFunc(attr);
     }
   }
+
+  exports.data = function(_data) {
+    dataInit(_data);
+    return {team:teamCoachData, coach:coachTeamData}
+  }
+
   d3.rebind(exports, dispatch, 'on');
   return exports;
 }

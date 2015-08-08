@@ -8,7 +8,7 @@
 </head>
 <body>
   <div class="jg-head">
-    <div class="jg-title"><span>감독</span>으로 보는 한국프로야구 역사</div>
+    <div class="jg-title"><a href="index.html"><span>감독</span>으로 보는 한국프로야구 역사</a></div>
     <div class="jg-link"><a href="article.html">자세히 읽기</a></div>
     <div class="jg-desc">감독으로 보는 한국프로야구 역사 감독으로 보는 한국프로야구 역사</div>
   </div>
@@ -31,7 +31,7 @@
       d3.select('div.jg-head').style('visibility', 'visible');
       d3.select('div.jg-foot').style('visibility', 'visible');
     })
-    kblHistoryDm.loadCsv('data/kbl-team-history.csv')
+    kblHistoryDm.loadHistoryCsv('data/kbl-team-history.csv')
 
     kblHistoryDm.on('dataReady', function(d) {
       d3.select('div.jg-chart')
