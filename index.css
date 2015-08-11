@@ -527,7 +527,7 @@ div.jg-legend {
   -webkit-flex: none;
           flex: none;
   position: fixed;
-  top: 224px;
+  top: 239px;
   /*background-color: white;*/
   padding : 5px;
   color: #ddd;
@@ -599,12 +599,15 @@ div.jg-legend {
 }
 */
 .jg-legend #jg-playoff {
-  margin-left : 11px;
+  margin-left : 6px;
 }
 
 .jg-legend .jg-legend-title {
   font-size : 13px;
   fill : #fff;
+}
+.jg-legend .jg-hidden {
+  visibility: hidden;
 }
 
 .jg-menu div {
@@ -738,9 +741,8 @@ circle.jg-link {
  fill : #585858;
 }
 
-
 .jg-rank-text .jg-star {
-  font-size: 4px;
+  font-size: 3px;
 }
 
 .jg-legend .jg-rank-text .jg-star {

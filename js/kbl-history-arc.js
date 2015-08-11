@@ -48,7 +48,7 @@ d3.kblHistoryArc = function () {
       }).append('text')
         .attr('class', 'jg-star')
         .attr('text-anchor', 'middle')
-        .attr('dy', '.35em')
+        .attr('dy', function(){return attrs.isLegend? 0:'.35em'})
         .text(function(d){return d.champion ==1 || attrs.isLegend ? '●':'○'} )
 
       rank.append('text')
@@ -154,12 +154,12 @@ d3.kblHistoryArc = function () {
       .data(['● 우승', '○ 준우승'])
     .enter().append('text')
       .attr('class', function(d,i) {
-        return 'jg-legend-star ' + (i==0 ? 'champion' : 'korean-season')
+        return 'jg-hidden jg-legend-star ' + (i==0 ? 'champion' : 'korean-season')
       })
       .attr('x', attrs.width*1.5)
       .attr('dx', '-2em')
       .attr('y', function(d,i) {
-        return -attrs.height + i*12;
+        return -attrs.height + i*14;
       })
       .attr('dy', '-.71em')
       .text(function(d){return d})
