@@ -285,7 +285,7 @@ d3.kblHistoryArticle = function module () {
     canvasHeight : 60,
     rowHeight : 30
   }
-  var margin = {top:10, right : 10, bottom : 10, left : 70};
+  var margin = {top:20, right : 10, bottom : 10, left : 70};
   var width;
   var x = d3.scale.ordinal(),
     thetaR = d3.scale.linear().range([0, Math.PI*(3/2)]),
@@ -331,7 +331,12 @@ d3.kblHistoryArticle = function module () {
         })
       .orient("top")
 
-    var figure = svg.selectAll('.jg-figure')
+    svg.append("g")
+      .attr("class", "jg-x jg-axis")
+      .attr("transform", d3.svg.transform().translate([margin.left, margin.top]))
+      .call(xAxis);
+
+  var figure = svg.selectAll('.jg-figure')
       .data(function(d){
         var out = findRowData(d.key, selection.datum().history[mode]);
         out.y = 0;
@@ -340,7 +345,7 @@ d3.kblHistoryArticle = function module () {
       })
       .enter().append('g')
       .attr('class', 'jg-figure')
-      .attr('transform', d3.svg.transform().translate(function() {return [0,margin.top]}))
+      .attr('transform', d3.svg.transform().translate(function() {return [0,margin.top*2]}))
 
     var row = d3.kblHistoryRow()
       .width(x.rangeBand())
