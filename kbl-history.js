@@ -280,11 +280,139 @@ d3.kblHistoryArc = function () {
 }
 
 d3.kblHistoryArticle = function module () {
+  var attrs = {
+    canvasWidth : 820,
+    canvasHeight : 60,
+    rowHeight : 30
+  }
+  var margin = {top:10, right : 10, bottom : 10, left : 70};
+  var width;
+  var x = d3.scale.ordinal(),
+    thetaR = d3.scale.linear().range([0, Math.PI*(3/2)]),
+    thetaRall = d3.scale.linear().range([0, Math.PI*(3/2)]);
+  var teamMap = d3.map({'OB':'OB','SS':'삼성','MB':'MBC',
+    'HT':'해태','LT':'롯데','SM':'삼미','LG':'LG','DS':'두산','KA':'KIA',
+    'BG':'빙그레','HH':'한화','SK':'SK','NS':'넥센','NC':'NC','SB':'쌍방울',
+    'CB':'청보','TP':'태평양','HD':'현대'})
   var exports = function(_selection) {
     _selection.each(function(_data) {
-
+      width = attrs.canvasWidth - margin.left - margin.right;
+      x.rangeRoundBands([0, width])
+        .domain(d3.range(1982, 2015));
+      var normalRExtent = [-2.389, 2.215],
+        normalRallExtent = [-2.006, 2.083];
+      thetaRall.domain([d3.min([normalRExtent[0], normalRallExtent[0]]), d3.max([normalRExtent[1], normalRallExtent[1]])])
+      thetaR.domain([thetaRall.domain()[1], thetaRall.domain()[0]]);
+      d3.select(this).select('div.jg-coach').call(articleInit, 'coach');
+      d3.select(this).select('div.jg-team').call(articleInit, 'team');
+      //attrs.canvasHeight - margin.top - margin.bottom;
     })
   }
+  function articleInit(selection,mode) {
+
+    var paragraph = selection.selectAll('.jg-paragraph')
+      .data(function(d){
+        return d.article.filter(function(a){
+          return a.mode === mode;
+      })})
+      .enter().append('div')
+      .attr('class', 'jg-paragraph')
+
+    var svg = paragraph.append('svg')
+      .attr('width', attrs.canvasWidth)
+      .attr('height', attrs.canvasHeight)
+      .append('g')
+
+    var xAxis = d3.svg.axis()
+      .scale(x)
+      .tickSize(0)
+      .tickFormat(function(d) {
+          return d3.format('02d')(d%100) + "'"
+        })
+      .orient("top")
+
+    var figure = svg.selectAll('.jg-figure')
+      .data(function(d){
+        var out = findRowData(d.key, selection.datum().history[mode]);
+        out.y = 0;
+        console.log(out);
+        return [[out]];
+      })
+      .enter().append('g')
+      .attr('class', 'jg-figure')
+      .attr('transform', d3.svg.transform().translate(function() {return [0,margin.top]}))
+
+    var row = d3.kblHistoryRow()
+      .width(x.rangeBand())
+      .height(attrs.rowHeight)
+      .x(x)
+      .thetaR(thetaR)
+      .thetaRall(thetaRall)
+      .svg(svg)
+      .teamMap(teamMap)
+      .margin(margin)
+      .isSupp(mode==='coach')
+      .isHidden(false)
+      .isArticle(true)
+      //.isHidden(!d3.select('#jg-playoff').property('checked'))
+
+    figure.call(row)
+    /*
+    var row = d3.kblHistoryRow()
+      .width(x.rangeBand())
+      .height(y.rangeBand())
+      .x(x)
+      .thetaR(thetaR)
+      .thetaRall(thetaRall)
+      .svg(svg)
+      .teamMap(teamMap)
+      .margin(margin)
+      .isHidden(!d3.select('#jg-playoff').property('checked'))
+    var suppRow = d3.kblHistoryRow()
+      .width(x.rangeBand())
+      .height(y.rangeBand())
+      .x(x)
+      .isSupp(true)
+      .thetaR(thetaR)
+      .thetaRall(thetaRall)
+      .svg(svgStack)
+      .teamMap(teamMap)
+      .margin(margin)
+      .isHidden(!d3.select('#jg-playoff').property('checked'));
+    var svg = selection.select('.jg-'+mode)
+      .append('svg');
+    var table = svg.append('g')
+      .attr('class', 'jg-table')
+      .attr('transform', d3.svg.transform().translate(function() {return [0,margin.top]})) //margin.left
+    */
+  }
+
+  function findRowData(key, values) {
+    for(var i = 0; i < values.length; i++) {
+      if(values[i].key === key) {
+        return values[i]
+      }
+    }
+    return null;
+  }
+
+  function createAccessorFunc(_attr) {
+    function accessor(val) {
+      if (!arguments.length) {
+        return attrs[_attr]
+      }
+      attrs[_attr] = val;
+      return exports;
+    }
+    return accessor;
+  }
+
+  for (var attr in attrs) {
+    if((!exports[attr]) && attrs.hasOwnProperty(attr)) {
+      exports[attr] = createAccessorFunc(attr);
+    }
+  }
+
   return exports;
 }
 
@@ -350,9 +478,10 @@ d3.kblHistoryRow = function module () {
     teamMap : null,
     isInteractive : true,
     margin : null,
-    isHidden : true
+    isHidden : true,
+    isArticle : false
   } //FIXME : 시작-마지막 연도 + 사이즈 되면 알아서 되도록
-  var emblemPath = 'image/team/'
+  var emblemPath = './image/team/'
   var dispatch = d3.dispatch("colOver", "colClick", 'rowOver')//, "rowOver", "rowClick"); // .hide .show
   var svgHeight;
   /*
@@ -367,7 +496,7 @@ d3.kblHistoryRow = function module () {
       // g 혹은 svg table이 this 라고 가정
       var row = d3.select(this)
         .selectAll( (attrs.isAvg ? '.jg-row-avg' : '.jg-row') + (attrs.isSupp ? '.jg-supp.jg-temp' : '') )// table.call
-          .data(_data,  function(d) { return d.key})
+          .data(_data,  function(d) {return d.key})
 
       row.enter().append('g')
         .classed({'jg-supp':attrs.isSupp, 'jg-temp':attrs.isSupp,'jg-row':!attrs.isAvg, 'jg-row-avg':attrs.isAvg})//.attr('class', 'jg-row')
@@ -382,7 +511,7 @@ d3.kblHistoryRow = function module () {
 
       row.exit().remove();
 
-      if(attrs.isSupp) {
+      if(attrs.isSupp && !attrs.isArticle) {
         setTimeout(function(){
           row.selectAll('.jg-col').classed({'jg-mouseover':true})
         }, 100)
@@ -398,28 +527,38 @@ d3.kblHistoryRow = function module () {
       .attr('transform', d3.svg.transform().translate(function(d,i) {
         return [0, 0]
       }))
-      .on('mouseenter', function(d) {
+    if (!attrs.isArticle) {
+      label.on('mouseenter', function(d) {
+          var thisRow = d3.select(d3.select(this).node().parentNode);
+          if (!thisRow.classed('jg-selected')) {
+            addBottomRow(thisRow, true);
+          }
+        })
+        .on('mouseleave', function(d) {
+          var thisRow = d3.select(d3.select(this).node().parentNode);
+          if (thisRow.classed('jg-selected')&&thisRow.classed('jg-mouseover')) {
+            addBottomRow(thisRow, true);
+          }
+        })
+        .on('click', function() {
+          var thisRow = d3.select(d3.select(this).node().parentNode);
+          addBottomRow(thisRow);
+        })
+    } else {
+      label.each(function(){
         var thisRow = d3.select(d3.select(this).node().parentNode);
-        if (!thisRow.classed('jg-selected')) {
-          addBottomRow(thisRow, true);
-        }
+        addBottomRow(thisRow, false);
       })
-      .on('mouseleave', function(d) {
-        var thisRow = d3.select(d3.select(this).node().parentNode);
-        if (thisRow.classed('jg-selected')&&thisRow.classed('jg-mouseover')) {
-          addBottomRow(thisRow, true);
-        }
-      })
-      .on('click', function() {
-        var thisRow = d3.select(d3.select(this).node().parentNode);
-        addBottomRow(thisRow);
-      })
+    }
+
 
     if (!attrs.isSupp) {
      label.append('image')
         .attr('xlink:href', function(d) {
           return emblemPath + d.key + '@2x.png'
         })
+        .attr('x', 4)
+        .attr('y', 2)
         .attr('width', '27')
         .attr('height', '22')
     }
@@ -435,6 +574,7 @@ d3.kblHistoryRow = function module () {
   }
 
   function addBottomRow(thisRow,/*optional*/isOver) {
+
     isOver = isOver || false;
     var duration = 400;
     var appendHClicked = attrs.height*2.25, appendHOvered = attrs.height * 1;

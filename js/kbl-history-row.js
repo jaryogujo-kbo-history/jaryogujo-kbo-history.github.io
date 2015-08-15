@@ -12,9 +12,10 @@ d3.kblHistoryRow = function module () {
     teamMap : null,
     isInteractive : true,
     margin : null,
-    isHidden : true
+    isHidden : true,
+    isArticle : false
   } //FIXME : 시작-마지막 연도 + 사이즈 되면 알아서 되도록
-  var emblemPath = 'image/team/'
+  var emblemPath = './image/team/'
   var dispatch = d3.dispatch("colOver", "colClick", 'rowOver')//, "rowOver", "rowClick"); // .hide .show
   var svgHeight;
   /*
@@ -29,7 +30,7 @@ d3.kblHistoryRow = function module () {
       // g 혹은 svg table이 this 라고 가정
       var row = d3.select(this)
         .selectAll( (attrs.isAvg ? '.jg-row-avg' : '.jg-row') + (attrs.isSupp ? '.jg-supp.jg-temp' : '') )// table.call
-          .data(_data,  function(d) { return d.key})
+          .data(_data,  function(d) {return d.key})
 
       row.enter().append('g')
         .classed({'jg-supp':attrs.isSupp, 'jg-temp':attrs.isSupp,'jg-row':!attrs.isAvg, 'jg-row-avg':attrs.isAvg})//.attr('class', 'jg-row')
@@ -44,7 +45,7 @@ d3.kblHistoryRow = function module () {
 
       row.exit().remove();
 
-      if(attrs.isSupp) {
+      if(attrs.isSupp && !attrs.isArticle) {
         setTimeout(function(){
           row.selectAll('.jg-col').classed({'jg-mouseover':true})
         }, 100)
@@ -60,28 +61,38 @@ d3.kblHistoryRow = function module () {
       .attr('transform', d3.svg.transform().translate(function(d,i) {
         return [0, 0]
       }))
-      .on('mouseenter', function(d) {
+    if (!attrs.isArticle) {
+      label.on('mouseenter', function(d) {
+          var thisRow = d3.select(d3.select(this).node().parentNode);
+          if (!thisRow.classed('jg-selected')) {
+            addBottomRow(thisRow, true);
+          }
+        })
+        .on('mouseleave', function(d) {
+          var thisRow = d3.select(d3.select(this).node().parentNode);
+          if (thisRow.classed('jg-selected')&&thisRow.classed('jg-mouseover')) {
+            addBottomRow(thisRow, true);
+          }
+        })
+        .on('click', function() {
+          var thisRow = d3.select(d3.select(this).node().parentNode);
+          addBottomRow(thisRow);
+        })
+    } else {
+      label.each(function(){
         var thisRow = d3.select(d3.select(this).node().parentNode);
-        if (!thisRow.classed('jg-selected')) {
-          addBottomRow(thisRow, true);
-        }
+        addBottomRow(thisRow, false);
       })
-      .on('mouseleave', function(d) {
-        var thisRow = d3.select(d3.select(this).node().parentNode);
-        if (thisRow.classed('jg-selected')&&thisRow.classed('jg-mouseover')) {
-          addBottomRow(thisRow, true);
-        }
-      })
-      .on('click', function() {
-        var thisRow = d3.select(d3.select(this).node().parentNode);
-        addBottomRow(thisRow);
-      })
+    }
+
 
     if (!attrs.isSupp) {
      label.append('image')
         .attr('xlink:href', function(d) {
           return emblemPath + d.key + '@2x.png'
         })
+        .attr('x', 4)
+        .attr('y', 2)
         .attr('width', '27')
         .attr('height', '22')
     }
@@ -97,6 +108,7 @@ d3.kblHistoryRow = function module () {
   }
 
   function addBottomRow(thisRow,/*optional*/isOver) {
+
     isOver = isOver || false;
     var duration = 400;
     var appendHClicked = attrs.height*2.25, appendHOvered = attrs.height * 1;

@@ -742,11 +742,11 @@ circle.jg-link {
 }
 
 .jg-rank-text .jg-star {
-  font-size: 3px;
+  font-size: 6px;
 }
 
 .jg-legend .jg-rank-text .jg-star {
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .jg-rank-text.korean-season .jg-star {
@@ -786,6 +786,14 @@ g.jg-col:nth-child(even) .jg-back{
   fill:#777;
 }
 
+.jg-menu {
+  margin : 20px auto;
+  width : 820px;
+  text-align: center;
+  padding-left : 38px;
+  font-size : 11px;
+}
+
 .jg-menu a {
   color : #39BEFF;
   opacity: .5;
@@ -797,4 +805,14 @@ g.jg-col:nth-child(even) .jg-back{
 
 .jg-menu a.jg-on {
   opacity : 1;
+}
+
+.jg-article.jg-content {
+  display:block;
+}
+
+.jg-article .jg-body {
+  margin : 0 auto;
+  padding-left : 38px;
+  width : 820px;
 }

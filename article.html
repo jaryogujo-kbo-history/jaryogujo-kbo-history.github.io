@@ -12,13 +12,15 @@
     <div class="jg-link"><a href="index.html">시각화 다시 보기</a></div>
     <div class="jg-desc">감독으로 보는 한국프로야구 역사 감독으로 보는 한국프로야구 역사</div>
   </div>
-  <div class="jg-content">
+  <div class="jg-content jg-article">
     <div class="jg-menu">
       <a class="jg-coach jg-on">감독에 관해서</a>
       <a class="jg-team">구단에 관해서</a>
     </div>
-    <div class="jg-article jg-coach"></div>
-    <div class="jg-article jg-team"></div>
+    <div class="jg-body">
+      <div class="jg-coach"></div>
+      <div class="jg-team"></div>
+    </div>
   </div>
   <div class="jg-foot">
     <div class="jg-title"><span>감독</span>으로 보는 한국프로야구 역사</div>
@@ -30,14 +32,14 @@
   <script>
     d3.select('div.jg-head').style('visibility', 'visible');
     d3.select('div.jg-foot').style('visibility', 'visible');
-    d3.select('div.jg-article.jg-team').style('display', 'none');
+    d3.select('div.jg-body > .jg-team').style('display', 'none');
 
     function turnOnOff(on, off) {
       d3.select('div.jg-menu a.'+on).on('click', function(){
         d3.select(this).classed({'jg-on':true})
         d3.select('div.jg-menu a.'+off).classed({'jg-on':false})
-        d3.select('div.jg-article.'+on).style('display', 'block')
-        d3.select('div.jg-article.'+off).style('display', 'none')
+        d3.select('div.jg-body > .'+on).style('display', 'block')
+        d3.select('div.jg-body > .'+off).style('display', 'none')
       })
     }
 
@@ -48,11 +50,14 @@
     var chart = d3.kblHistory();
     kblHistoryDm.loadHistoryCsv('data/kbl-team-history.csv')
     kblHistoryDm.on('dataReady', function(_data) {
-      var converted = chart.data(_data);
+      var historyData = chart.data(_data);
       var kblArticleDm = d3.kblHistoryDataMng();
+      var article = d3.kblHistoryArticle();
       kblArticleDm.loadArticleCsv('data/article.csv');
-      kblArticleDm.on('dataReady', function(_article) {
-        console.log(_article);
+      kblArticleDm.on('dataReady', function(articleData) {
+        d3.select('div.jg-body')
+          .datum({history:historyData, article:articleData})
+          .call(article);
       });
     })
 

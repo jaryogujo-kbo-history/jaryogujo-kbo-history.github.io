@@ -21,7 +21,9 @@ module.exports = function (grunt) {
     }, //end of concat
     connect: {
         dev: {
+          options:{
             livereload : true
+          }
         }
     }, //end of http-server
     watch : {
