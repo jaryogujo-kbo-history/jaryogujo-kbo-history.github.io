@@ -816,3 +816,35 @@ g.jg-col:nth-child(even) .jg-back{
   padding-left : 38px;
   width : 820px;
 }
+
+.jg-article .jg-byline, .jg-article .jg-section{
+  color : #fff;
+  line-height: 1.8;
+}
+
+
+.jg-article .jg-byline {
+  padding : 10px 48px;
+  font-size : 14px;
+}
+
+.jg-article .jg-list {
+  margin-left : 24px;
+  padding: 0 36px;
+  color: #eee;
+  border-left: 4px solid ;
+}
+
+.jg-article .jg-section {
+  margin-top : 20px
+}
+
+.jg-article .jg-title {
+  padding : 10px 48px;
+  font-size : 18px;
+}
+
+.jg-article .jg-paragraph {
+  padding : 4px 48px;
+  font-size : 14px;
+}

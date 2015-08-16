@@ -1,7 +1,7 @@
 d3.kblHistoryArticle = function module () {
   var attrs = {
     canvasWidth : 820,
-    canvasHeight : 60,
+    canvasHeight : 100,
     rowHeight : 30
   }
   var margin = {top:20, right : 10, bottom : 10, left : 70};
@@ -29,15 +29,20 @@ d3.kblHistoryArticle = function module () {
   }
   function articleInit(selection,mode) {
 
-    var paragraph = selection.selectAll('.jg-paragraph')
+    var section = selection.selectAll('.jg-section')
       .data(function(d){
         return d.article.filter(function(a){
           return a.mode === mode;
       })})
       .enter().append('div')
-      .attr('class', 'jg-paragraph')
+      .attr('class', 'jg-section')
 
-    var svg = paragraph.append('svg')
+    section.append('h2')
+      .attr('class', 'jg-title')
+      .html(function(d){return d.title})
+
+
+    var svg = section.append('svg')
       .attr('width', attrs.canvasWidth)
       .attr('height', attrs.canvasHeight)
       .append('g')
@@ -55,16 +60,15 @@ d3.kblHistoryArticle = function module () {
       .attr("transform", d3.svg.transform().translate([margin.left, margin.top]))
       .call(xAxis);
 
-  var figure = svg.selectAll('.jg-figure')
-      .data(function(d){
-        var out = findRowData(d.key, selection.datum().history[mode]);
-        out.y = 0;
-        console.log(out);
-        return [[out]];
-      })
-      .enter().append('g')
-      .attr('class', 'jg-figure')
-      .attr('transform', d3.svg.transform().translate(function() {return [0,margin.top*2]}))
+    var figure = svg.selectAll('.jg-figure')
+        .data(function(d){
+          var out = findRowData(d.key, selection.datum().history[mode]);
+          out.y = 0;
+          return [[out]];
+        })
+        .enter().append('g')
+        .attr('class', 'jg-figure')
+        .attr('transform', d3.svg.transform().translate(function() {return [0,margin.top*2]}))
 
     var row = d3.kblHistoryRow()
       .width(x.rangeBand())
@@ -78,37 +82,17 @@ d3.kblHistoryArticle = function module () {
       .isSupp(mode==='coach')
       .isHidden(false)
       .isArticle(true)
-      //.isHidden(!d3.select('#jg-playoff').property('checked'))
 
     figure.call(row)
-    /*
-    var row = d3.kblHistoryRow()
-      .width(x.rangeBand())
-      .height(y.rangeBand())
-      .x(x)
-      .thetaR(thetaR)
-      .thetaRall(thetaRall)
-      .svg(svg)
-      .teamMap(teamMap)
-      .margin(margin)
-      .isHidden(!d3.select('#jg-playoff').property('checked'))
-    var suppRow = d3.kblHistoryRow()
-      .width(x.rangeBand())
-      .height(y.rangeBand())
-      .x(x)
-      .isSupp(true)
-      .thetaR(thetaR)
-      .thetaRall(thetaRall)
-      .svg(svgStack)
-      .teamMap(teamMap)
-      .margin(margin)
-      .isHidden(!d3.select('#jg-playoff').property('checked'));
-    var svg = selection.select('.jg-'+mode)
-      .append('svg');
-    var table = svg.append('g')
-      .attr('class', 'jg-table')
-      .attr('transform', d3.svg.transform().translate(function() {return [0,margin.top]})) //margin.left
-    */
+
+
+    section.selectAll('.jg-paragraph')
+      .data(function(d) {
+        return d.desc.split("\n").filter(function(d){return d!==""})
+      })
+      .enter().append('div')
+      .attr('class', 'jg-paragraph')
+      .html(function(d){return d})
   }
 
   function findRowData(key, values) {

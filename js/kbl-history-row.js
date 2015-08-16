@@ -191,7 +191,8 @@ d3.kblHistoryRow = function module () {
     }
 
     var selectedRow = thisSvg.selectAll('.jg-row.jg-selected');
-    if (selectedRow.size() > 0) { // 이미 존재 할 때
+    console.log(selectedRow.size());
+    if (selectedRow.size() > 0 && !attrs.isArticle) { // 이미 존재 할 때
       //var selectedIndex = getIndexOfRow(selectedRow);
       // 중복 인 것
       var dupRows = selectedRow.filter(function(d) {
@@ -241,10 +242,12 @@ d3.kblHistoryRow = function module () {
       .call(turnOnOffEmblem);
     }
     //if(attrs.isSupp) console.log(svgHeight);
-    d3.select(thisSvg.node().parentNode)
-      .attr('temp-height', svgHeight)
-      .transition()
-      .duration(400).attr('height', svgHeight)
+    if(!attrs.isArticle) {
+      d3.select(thisSvg.node().parentNode)
+        .attr('temp-height', svgHeight)
+        .transition()
+        .duration(400).attr('height', svgHeight)
+    }
   }
 
   function drawBottomRow(selection, isSupp, isOver) {
