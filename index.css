@@ -508,34 +508,44 @@ div.jg-foot > div.jg-logo > img {
 }
 
 div.jg-content {
+  /*
   display: -webkit-flex;
   display: flex;
   -webkit-justify-content: center;
           justify-content: center;
+  */
   margin: 10px auto;
   border-spacing : 0px;
   font-weight : 300;
   color: rgb(51, 51, 51);
   font-size : 11px;
+  text-align: center;
 }
 
 div.jg-chart {
-  /*margin: 0 auto;*/
+  display : inline-block;
 }
 
 div.jg-legend {
+  position : absolute;
+  display : inline-block;
+  top : 224px;
+  /*
   -webkit-flex: none;
           flex: none;
   position: fixed;
-  top: 239px;
+  */
+
   /*background-color: white;*/
   padding : 5px;
   color: #ddd;
+
 
   border-style: solid;
   border-width: 1px;
   border-radius: 4px;
   fill : #b7c2c2;
+  text-align: left;
 }
 .jg-legend > div {
   margin : 7px auto;
@@ -816,6 +826,7 @@ g.jg-col:nth-child(even) .jg-back{
 
 .jg-article.jg-content {
   display:block;
+  text-align: left;
 }
 
 .jg-article .jg-body {

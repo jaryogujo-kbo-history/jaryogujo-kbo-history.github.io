@@ -9,6 +9,7 @@ module.exports = function (grunt) {
             'js/*.js',
           ],
           'lib.js': [
+            'bower_components/jquery/dist/jquery.min.js',
             'bower_components/d3/d3.min.js',
             'bower_components/d3-transform/src/d3-transform.js'
           ],

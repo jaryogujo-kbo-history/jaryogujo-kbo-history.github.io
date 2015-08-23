@@ -191,7 +191,6 @@ d3.kblHistoryRow = function module () {
     }
 
     var selectedRow = thisSvg.selectAll('.jg-row.jg-selected');
-    console.log(selectedRow.size());
     if (selectedRow.size() > 0 && !attrs.isArticle) { // 이미 존재 할 때
       //var selectedIndex = getIndexOfRow(selectedRow);
       // 중복 인 것

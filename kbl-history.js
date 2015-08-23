@@ -54,7 +54,7 @@ d3.kblHistoryArc = function () {
         .attr('class', 'jg-number')
         .attr('dx', '.175em')
         .attr('dy', '.9em')
-        .text(function(d) {return d.season_rank}) //FIXME : 나중에 고침
+        .text(function(d) {return d.season_rank})
     }
 
 
@@ -115,7 +115,7 @@ d3.kblHistoryArc = function () {
       .text('➤')
 
     selection.append("text")
-      .attr('class', 'jg-legend-rank')
+      .attr('class', 'jg-legend-rank jg-hidden')
       .attr('x', -attrs.width * .75)
       .attr('dy', '1em')
       .text('순위 —')
@@ -653,7 +653,6 @@ d3.kblHistoryRow = function module () {
     }
 
     var selectedRow = thisSvg.selectAll('.jg-row.jg-selected');
-    console.log(selectedRow.size());
     if (selectedRow.size() > 0 && !attrs.isArticle) { // 이미 존재 할 때
       //var selectedIndex = getIndexOfRow(selectedRow);
       // 중복 인 것
@@ -1005,7 +1004,7 @@ d3.kblHistory = function module () {
           .classed({'jg-hidden':!checked})
         svgStack.selectAll('.jg-col .jg-rank-text.playoff')
           .classed({'jg-hidden':!checked})
-        legendDiv.selectAll('.jg-rank-text.playoff, .jg-legend-star')
+        legendDiv.selectAll('.jg-rank-text.playoff, .jg-legend-star, .jg-legend-rank')
           .classed({'jg-hidden':!checked})
       })
 
@@ -1031,7 +1030,7 @@ d3.kblHistory = function module () {
           .classed({'jg-hidden':!checked})
         svgStack.selectAll('.jg-col .jg-rank-text.champion')
           .classed({'jg-hidden':!checked})
-        legendDiv.selectAll('.jg-rank-text.playoff, .jg-legend-star')
+        legendDiv.selectAll('.jg-rank-text.playoff, .jg-legend-star, .jg-legend-rank')
           .classed({'jg-hidden':!checked})
       })
 
@@ -1059,6 +1058,15 @@ d3.kblHistory = function module () {
         selectCol(coachName, false);
       }
     })
+    $(window).on('scroll', function(event) {
+      var threshold = 224;
+      var scrollTop = $(window).scrollTop()
+      if (scrollTop > threshold) {
+        selection.style('top', (scrollTop+10) + 'px');
+      } else {
+        selection.style('top',threshold);
+      }
+    });
     return selection;
   }
 

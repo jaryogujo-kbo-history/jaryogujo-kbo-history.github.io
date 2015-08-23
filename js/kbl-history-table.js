@@ -131,7 +131,7 @@ d3.kblHistory = function module () {
           .classed({'jg-hidden':!checked})
         svgStack.selectAll('.jg-col .jg-rank-text.playoff')
           .classed({'jg-hidden':!checked})
-        legendDiv.selectAll('.jg-rank-text.playoff, .jg-legend-star')
+        legendDiv.selectAll('.jg-rank-text.playoff, .jg-legend-star, .jg-legend-rank')
           .classed({'jg-hidden':!checked})
       })
 
@@ -157,7 +157,7 @@ d3.kblHistory = function module () {
           .classed({'jg-hidden':!checked})
         svgStack.selectAll('.jg-col .jg-rank-text.champion')
           .classed({'jg-hidden':!checked})
-        legendDiv.selectAll('.jg-rank-text.playoff, .jg-legend-star')
+        legendDiv.selectAll('.jg-rank-text.playoff, .jg-legend-star, .jg-legend-rank')
           .classed({'jg-hidden':!checked})
       })
 
@@ -185,6 +185,15 @@ d3.kblHistory = function module () {
         selectCol(coachName, false);
       }
     })
+    $(window).on('scroll', function(event) {
+      var threshold = 224;
+      var scrollTop = $(window).scrollTop()
+      if (scrollTop > threshold) {
+        selection.style('top', (scrollTop+10) + 'px');
+      } else {
+        selection.style('top',threshold);
+      }
+    });
     return selection;
   }
 

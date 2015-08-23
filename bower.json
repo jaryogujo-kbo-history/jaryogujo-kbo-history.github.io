@@ -31,7 +31,7 @@
     "node_modules",
     "output",
     "scripts",
-    "src",
+    "src"
   ],
   "dependencies": {
     "d3": "~3.5.5",
