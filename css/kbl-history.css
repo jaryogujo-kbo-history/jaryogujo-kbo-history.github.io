@@ -149,8 +149,26 @@ div.jg-legend {
   fill : #f6b900;
 }
 
-.jg-legend .jg-star, .jg-legend .jg-legend-star {
+.jg-rank-text .jg-star {
+  fill : none;
+  stroke : #fff;
+}
+
+.jg-rank-text.champion .jg-star {
   fill : #fff;
+}
+
+.jg-legend .jg-legend-star text {
+  fill : #fff;
+}
+
+.jg-legend .jg-legend-star.champion circle {
+  fill : #fff;
+}
+
+.jg-legend .jg-legend-star.korean-season circle{
+  fill : none;
+  stroke : #fff;
 }
 
 .jg-legend hr {
@@ -316,17 +334,6 @@ circle.jg-link {
  fill : #585858;
 }
 
-.jg-rank-text .jg-star {
-  font-size: 6px;
-}
-
-.jg-legend .jg-rank-text .jg-star {
-  font-size: 12px;
-}
-
-.jg-rank-text.korean-season .jg-star {
-  fill : #fff;
-}
 
 .jg-rank-text.jg-hidden .jg-star {
  visibility: hidden;

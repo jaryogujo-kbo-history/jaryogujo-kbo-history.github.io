@@ -37,7 +37,7 @@ d3.kblHistoryArc = function () {
         .each(function(d) {
           d3.select(this).classed({'playoff': (d.playoff==1),
           'korean-season':(d.champion>0),
-          'champion':(d.champion==1)})
+          'champion':(d.champion==1 || attrs.isLegend)})
         })
         .attr('transform', d3.svg.transform().translate(function(d,i){
           return [i*attrs.width, 0]
@@ -45,11 +45,10 @@ d3.kblHistoryArc = function () {
 
       rank.filter(function(){
         return d3.select(this).classed('korean-season') || attrs.isLegend
-      }).append('text')
+      }).append('circle')
         .attr('class', 'jg-star')
-        .attr('text-anchor', 'middle')
-        .attr('dy', function(){return attrs.isLegend? 0:'.35em'})
-        .text(function(d){return d.champion ==1 || attrs.isLegend ? '●':'○'} )
+        .attr('cx', -1)
+        .attr('r', (attrs.isLegend ? 3:1.5))
 
       rank.append('text')
         .attr('class', 'jg-number')
@@ -119,7 +118,7 @@ d3.kblHistoryArc = function () {
       .attr('class', 'jg-legend-rank')
       .attr('x', -attrs.width * .75)
       .attr('dy', '1em')
-      .text('순위 ⸻')
+      .text('순위 —')
 
     selection.selectAll('jg-legend-range')
       .data(['낮음 –', '높음'])
@@ -150,19 +149,27 @@ d3.kblHistoryArc = function () {
       .attr('dy', '.35em')
       .text(function(d){return d})
 
-    selection.selectAll('jg-legend-star')
-      .data(['● 우승', '○ 준우승'])
-    .enter().append('text')
+    var star = selection.selectAll('jg-legend-star')
+      .data(['우승', '준우승'])
+    .enter().append('g')
       .attr('class', function(d,i) {
         return 'jg-hidden jg-legend-star ' + (i==0 ? 'champion' : 'korean-season')
       })
-      .attr('x', attrs.width*1.5)
-      .attr('dx', '-2em')
-      .attr('y', function(d,i) {
-        return -attrs.height + i*14;
-      })
+      .attr('transform', d3.svg.transform().translate(function(d,i) {
+        return [attrs.width*1.5, -attrs.height + i*14]
+      }))
+
+    star.append('text')
+      .attr('dx', '-1em')
       .attr('dy', '-.71em')
       .text(function(d){return d})
+
+    star.append('circle')
+      .attr('cx', '-1.5em')
+      .attr('cy', function(d,i) {
+        return '-1em'
+      })
+      .attr('r', 4)
 
     selection.append("text")
       .attr('class', 'jg-legend-title')
