@@ -547,6 +547,12 @@ div.jg-legend {
   fill : #b7c2c2;
   text-align: left;
 }
+
+@media screen and (max-width:840px) {
+  div.jg-legend {
+    left:840px;
+  }
+}
 .jg-legend > div {
   margin : 7px auto;
 }
