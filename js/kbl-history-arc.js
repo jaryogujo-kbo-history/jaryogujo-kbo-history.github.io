@@ -54,7 +54,7 @@ d3.kblHistoryArc = function () {
         .attr('class', 'jg-number')
         .attr('dx', '.175em')
         .attr('dy', '.9em')
-        .text(function(d) {return d.season_rank}) //FIXME : 나중에 고침
+        .text(function(d) {return d.season_rank})
     }
 
 
@@ -115,7 +115,7 @@ d3.kblHistoryArc = function () {
       .text('➤')
 
     selection.append("text")
-      .attr('class', 'jg-legend-rank')
+      .attr('class', 'jg-legend-rank jg-hidden')
       .attr('x', -attrs.width * .75)
       .attr('dy', '1em')
       .text('순위 —')
