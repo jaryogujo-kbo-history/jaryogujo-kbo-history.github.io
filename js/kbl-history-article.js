@@ -24,7 +24,6 @@ d3.kblHistoryArticle = function module () {
       thetaR.domain([thetaRall.domain()[1], thetaRall.domain()[0]]);
       d3.select(this).select('div.jg-coach').call(articleInit, 'coach');
       d3.select(this).select('div.jg-team').call(articleInit, 'team');
-      //attrs.canvasHeight - margin.top - margin.bottom;
     })
   }
   function articleInit(selection,mode) {

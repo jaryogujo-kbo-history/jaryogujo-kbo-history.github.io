@@ -474,6 +474,7 @@ div.jg-head > div.jg-desc {
   padding-top:6px;
   color : #8A8A8A;
   font-size : 11px;
+  width : 400px;
 }
 
 div.jg-foot {
@@ -529,7 +530,7 @@ div.jg-chart {
 div.jg-legend {
   position : absolute;
   display : inline-block;
-  top : 224px;
+  top : 260px;
   /*
   -webkit-flex: none;
           flex: none;
@@ -848,7 +849,7 @@ g.jg-col:nth-child(even) .jg-back{
 
 
 .jg-article .jg-byline {
-  padding : 10px 117px;
+  padding : 10px 48px;
   font-size : 14px;
 }
 
@@ -878,6 +879,7 @@ g.jg-col:nth-child(even) .jg-back{
   padding : 4px 117px;
   font-size : 14px;
   text-align: left;
+  color : #D2D2D2;
 }
 
 .jg-article div.jg-line {

@@ -312,7 +312,6 @@ d3.kblHistoryArticle = function module () {
       thetaR.domain([thetaRall.domain()[1], thetaRall.domain()[0]]);
       d3.select(this).select('div.jg-coach').call(articleInit, 'coach');
       d3.select(this).select('div.jg-team').call(articleInit, 'team');
-      //attrs.canvasHeight - margin.top - margin.bottom;
     })
   }
   function articleInit(selection,mode) {
@@ -1065,7 +1064,7 @@ d3.kblHistory = function module () {
       }
     })
     $(window).on('scroll', function(event) {
-      var threshold = 224;
+      var threshold = 250;
       var scrollTop = $(window).scrollTop()
       if (scrollTop > threshold) {
         selection.style('top', (scrollTop+10) + 'px');
