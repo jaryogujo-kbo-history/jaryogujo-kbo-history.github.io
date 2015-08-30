@@ -327,7 +327,13 @@ d3.kblHistoryArticle = function module () {
 
     section.append('h2')
       .attr('class', 'jg-title')
-      .html(function(d){return d.title})
+      .html(function(d){
+        var chunks = d.title.split(' ')
+        if (chunks.length > 0) {
+          return '<span>' + chunks[0] + ' ' + '</span>' + chunks.slice(1).join(' ')
+        }
+        else return d.title
+      })
 
 
     var svg = section.append('svg')
@@ -350,9 +356,9 @@ d3.kblHistoryArticle = function module () {
 
     var figure = svg.selectAll('.jg-figure')
         .data(function(d){
-          var out = findRowData(d.key, selection.datum().history[mode]);
-          out.y = 0;
-          return [[out]];
+            var out = findRowData(d.key, selection.datum().history[mode]);
+            out.y = 0;
+            return [[out]];
         })
         .enter().append('g')
         .attr('class', 'jg-figure')
