@@ -120,7 +120,7 @@ d3.kblHistory = function module () {
     var checkPlayOffDiv = selection.append('div')
       .attr('class', 'jg-playoff-check')
     checkPlayOffDiv.append('span')
-      .text('플레이오프 진출 및 우승팀 표시')
+      .text('플레이오프 진출팀 표시')
 
     checkPlayOffDiv.append('input')
       .attr('id', 'jg-playoff')
