@@ -326,6 +326,7 @@ d3.kblHistoryArticle = function module () {
 
     section.append('h2')
       .attr('class', 'jg-title')
+      .attr('id', function(d,i){return 'jg-'+d.mode+'-'+i})
       .html(function(d){
         var chunks = d.title.split(' ')
         if (chunks.length > 0) {

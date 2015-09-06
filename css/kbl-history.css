@@ -490,3 +490,7 @@ g.jg-col:nth-child(even) .jg-back{
 .jg-article a {
   color : #39BEFF;
 }
+
+.jg-article li  a {
+  color : #fff;
+}
