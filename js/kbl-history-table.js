@@ -188,8 +188,7 @@ d3.kblHistory = function module () {
     })
     $(window).on('scroll', function(event) {
       var threshold = 265;
-      var scrollTop = $(window).scrollTop()
-      console.log(scrollTop);
+      var scrollTop = $(window).scrollTop();
       if (scrollTop > (threshold-10)) {
         selection.style('top', (scrollTop + 10) + 'px');
       } else {
