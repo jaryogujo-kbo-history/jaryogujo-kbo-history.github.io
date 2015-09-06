@@ -486,3 +486,7 @@ g.jg-col:nth-child(even) .jg-back{
 .jg-article .jg-axis text {
   fill :  #A7A7A7;
 }
+
+.jg-article a {
+  color : #39BEFF;
+}
