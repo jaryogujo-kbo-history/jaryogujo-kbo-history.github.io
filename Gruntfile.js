@@ -14,6 +14,7 @@ module.exports = function (grunt) {
             'bower_components/d3-transform/src/d3-transform.js'
           ],
           "index.css" : [
+            'css/kbl-history-prefix.css',
             'bower_components/normalize.css/normalize.css',
             'css/kbl-history.css'
           ]
