@@ -51,6 +51,9 @@ div.jg-head > div.jg-desc {
   font-size : 11px;
   width : 400px;
 }
+div.jg-head > div.jg-desc p{
+  margin : 3px auto;
+}
 
 div.jg-foot {
   color : #fff;
@@ -105,7 +108,7 @@ div.jg-chart {
 div.jg-legend {
   position : absolute;
   display : inline-block;
-  top : 260px;
+  top : 265px;
   /*
   -webkit-flex: none;
           flex: none;
@@ -175,6 +178,10 @@ div.jg-legend {
   fill : #fff;
 }
 
+.jg-legend .jg-legend-star.jg-hidden {
+  visibility: hidden;
+}
+
 .jg-legend .jg-legend-star text {
   fill : #fff;
 }
@@ -216,9 +223,11 @@ div.jg-legend {
   font-size : 13px;
   fill : #fff;
 }
+/*
 .jg-legend .jg-hidden {
   visibility: hidden;
 }
+*/
 
 .jg-menu div {
   margin : 10px;
@@ -472,4 +481,8 @@ g.jg-col:nth-child(even) .jg-back{
   border-color : #8a8a8a;
   width : 335px;
   display : inline-block;
+}
+
+.jg-article .jg-axis text {
+  fill :  #A7A7A7;
 }

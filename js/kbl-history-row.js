@@ -89,7 +89,7 @@ d3.kblHistoryRow = function module () {
     if (!attrs.isSupp) {
      label.append('image')
         .attr('xlink:href', function(d) {
-          return emblemPath + d.key + '@2x.png'
+          return emblemPath + d.key + (attrs.isArticle? '_c' : '')+ '@2x.png'
         })
         .attr('x', 4)
         .attr('y', 2)

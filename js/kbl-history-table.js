@@ -114,6 +114,7 @@ d3.kblHistory = function module () {
       .thetaR(thetaR)
       .thetaRall(thetaRall)
       .isLegend(true)
+
     sample.call(arc)
     selection.append('hr')
     var checkPlayOffDiv = selection.append('div')
@@ -186,12 +187,13 @@ d3.kblHistory = function module () {
       }
     })
     $(window).on('scroll', function(event) {
-      var threshold = 250;
+      var threshold = 265;
       var scrollTop = $(window).scrollTop()
-      if (scrollTop > threshold) {
-        selection.style('top', (scrollTop+10) + 'px');
+      console.log(scrollTop);
+      if (scrollTop > (threshold-10)) {
+        selection.style('top', (scrollTop + 10) + 'px');
       } else {
-        selection.style('top',threshold);
+        selection.style('top',threshold + 'px');
       }
     });
     return selection;
