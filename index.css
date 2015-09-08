@@ -840,6 +840,15 @@ g.jg-col:nth-child(even) .jg-back{
   opacity : 1;
 }
 
+.jg-cc {
+  margin : 240px auto 40px auto;
+  text-align: center;
+}
+
+.jg-cc a {
+  color : #39BEFF;
+}
+
 .jg-article.jg-content {
   display:block;
   text-align: left;
