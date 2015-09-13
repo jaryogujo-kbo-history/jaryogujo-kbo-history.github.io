@@ -1268,7 +1268,7 @@ d3.kblHistory = function module () {
   function drawBrushYearStat(selection) {
     yearStatBrush =  d3.svg.brush()
       .x(x)
-      .extent(x.domain().map(function(d){return x(d)}))
+      .extent([x(x.domain()[28]), x(x.domain()[x.domain().length-1])+x.rangeBand()])//.extent(x.domain().map(function(d){return x(d)}))
       .on('brush', brushed)
 
     function brushed() {
