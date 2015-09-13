@@ -1041,7 +1041,7 @@ d3.kblHistory = function module () {
           .classed({'jg-hidden':!checked})
       })
 
-    var coaches = coachTeamData.map(function(d){return d.key})
+    var coaches = coachTeamData.map(function(d){return d.key}).sort(function(a,b){return a.localeCompare(b);})
     coaches.splice(0,0, '⚾︎ 특정 감독 살펴보기  ▾')
     var dropdownDiv = selection.append('div')
       .attr('class', 'jg-coach-select')
