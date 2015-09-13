@@ -1,7 +1,10 @@
 body {
   font-family : 'Noto Sans Korean','Open Sans',sans-serif;
   background: #222;
+  transform: scale(1.05);
+  transform-origin: 5% 5%;
 }
+
 div.jg-head, div.jg-foot   {
   visibility: hidden;
 }
@@ -106,7 +109,7 @@ div.jg-chart {
 div.jg-legend {
   position : absolute;
   display : inline-block;
-  top : 272px;
+  top : 197px;
   /*
   -webkit-flex: none;
           flex: none;
@@ -389,7 +392,7 @@ g.jg-col:nth-child(even) .jg-back{
 }
 
 .jg-bottom-row .jg-coach-name {
-  fill:#777;
+  fill:#bbb;
 }
 
 .jg-menu {
