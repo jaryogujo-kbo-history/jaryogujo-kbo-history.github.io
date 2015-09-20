@@ -9,7 +9,8 @@ d3.kblHistoryArc = function () {
     thetaR : null,
     thetaRall : null,
     isHidden : true,
-    isLegend : false
+    isLegend : false,
+    isArticle : false
   }
 
   var lineX = d3.scale.ordinal(), lineY = d3.scale.ordinal()
@@ -153,11 +154,12 @@ d3.kblHistoryArc = function () {
       .data(['우승', '준우승'])
     .enter().append('g')
       .attr('class', function(d,i) {
-        return 'jg-hidden jg-legend-star ' + (i==0 ? 'champion' : 'korean-season')
+        return (attrs.isHidden? 'jg-hidden ':'') +'jg-legend-star ' + (i==0 ? 'champion' : 'korean-season')
       })
       .attr('transform', d3.svg.transform().translate(function(d,i) {
         return [attrs.width*1.5, -attrs.height + i*14]
       }))
+
 
     star.append('text')
       .attr('dx', '-1em')
@@ -293,7 +295,7 @@ d3.kblHistoryArticle = function module () {
     rowHeight : 30
   }
   var margin = {top:20, right : 10, bottom : 10, left : 70};
-  var width;
+  var width, teamCoachData;
   var x = d3.scale.ordinal(),
     thetaR = d3.scale.linear().range([0, Math.PI*(3/2)]),
     thetaRall = d3.scale.linear().range([0, Math.PI*(3/2)]);
@@ -303,6 +305,7 @@ d3.kblHistoryArticle = function module () {
     'CB':'청보','TP':'태평양','HD':'현대'})
   var exports = function(_selection) {
     _selection.each(function(_data) {
+      teamCoachData = _data.history.team;
       width = attrs.canvasWidth - margin.left - margin.right;
       x.rangeRoundBands([0, width])
         .domain(d3.range(1982, 2015));
@@ -310,10 +313,56 @@ d3.kblHistoryArticle = function module () {
         normalRallExtent = [-2.006, 2.083];
       thetaRall.domain([d3.min([normalRExtent[0], normalRallExtent[0]]), d3.max([normalRExtent[1], normalRallExtent[1]])])
       thetaR.domain([thetaRall.domain()[1], thetaRall.domain()[0]]);
+
       d3.select(this).select('div.jg-coach').call(articleInit, 'coach');
       d3.select(this).select('div.jg-team').call(articleInit, 'team');
+      d3.select(d3.select(this).node().parentNode).append('div')
+          .attr('class', 'jg-legend')
+          .call(legendInit)
+
     })
   }
+
+  function legendInit(selection) {
+    var w = 145, h = 140;
+    selection.style('height', h+'px').style('width', w+'px')
+
+    var sampleData = [[Object.create(teamCoachData[0].values[1].values[0][0])]]
+    //, [Object.create(teamCoachData[1].values[0].values[0][1])]]
+    var arcSize = x.rangeBand() * 2.5;
+    var sample = selection.append('svg')
+      .attr('class', 'jg-legend-arc-svg')
+      .selectAll('.jg-legend-arc')
+        .data(sampleData)
+      .enter().append('g')
+      .attr('class', 'jg-legend-arc')
+      .attr('transform', d3.svg.transform().translate(function(d,i) {
+        return [w/2 - arcSize/2, h/2]
+      }))
+
+    var arc = d3.kblHistoryArc()
+      //.isAvg()
+      .width(arcSize)
+      .height(arcSize)
+      .thetaR(thetaR)
+      .thetaRall(thetaRall)
+      .isLegend(true)
+      .isHidden(false);
+
+    sample.call(arc)
+
+    $(window).on('scroll', function(event) {
+      var threshold = 186;
+      var scrollTop = $(window).scrollTop();
+      if (scrollTop > (threshold-10)) {
+        selection.style('top', (scrollTop + 10) + 'px');
+      } else {
+        selection.style('top',threshold + 'px');
+      }
+    });
+    return selection;
+  }
+
   function articleInit(selection,mode) {
 
     var section = selection.selectAll('.jg-section')

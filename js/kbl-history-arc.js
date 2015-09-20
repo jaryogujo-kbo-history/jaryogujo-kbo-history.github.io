@@ -9,7 +9,8 @@ d3.kblHistoryArc = function () {
     thetaR : null,
     thetaRall : null,
     isHidden : true,
-    isLegend : false
+    isLegend : false,
+    isArticle : false
   }
 
   var lineX = d3.scale.ordinal(), lineY = d3.scale.ordinal()
@@ -153,11 +154,12 @@ d3.kblHistoryArc = function () {
       .data(['우승', '준우승'])
     .enter().append('g')
       .attr('class', function(d,i) {
-        return 'jg-hidden jg-legend-star ' + (i==0 ? 'champion' : 'korean-season')
+        return (attrs.isHidden? 'jg-hidden ':'') +'jg-legend-star ' + (i==0 ? 'champion' : 'korean-season')
       })
       .attr('transform', d3.svg.transform().translate(function(d,i) {
         return [attrs.width*1.5, -attrs.height + i*14]
       }))
+
 
     star.append('text')
       .attr('dx', '-1em')

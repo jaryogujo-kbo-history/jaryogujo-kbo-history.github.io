@@ -3,7 +3,7 @@ body {
   background: #222;
   transform: scale(1.05);
   transform-origin: 5% 5%;
-  margin-left: -90px;
+  margin-left: -100px;
 }
 
 div.jg-head, div.jg-foot   {
@@ -120,8 +120,6 @@ div.jg-legend {
   /*background-color: white;*/
   padding : 5px;
   color: #ddd;
-
-
   border-style: solid;
   border-width: 1px;
   border-radius: 4px;
@@ -428,13 +426,15 @@ g.jg-col:nth-child(even) .jg-back{
 
 .jg-article.jg-content {
   display:block;
-  text-align: left;
+  text-align: center;
 }
 
 .jg-article .jg-body {
   margin : 0 auto;
   padding-left : 38px;
   width : 820px;
+  display: inline-block;
+  text-align : left;
 }
 
 .jg-article .jg-byline, .jg-article .jg-section{
