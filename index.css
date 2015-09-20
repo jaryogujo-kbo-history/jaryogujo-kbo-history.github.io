@@ -430,6 +430,7 @@ body {
   background: #222;
   transform: scale(1.05);
   transform-origin: 5% 5%;
+  margin-left: -90px;
 }
 
 div.jg-head, div.jg-foot   {
@@ -536,7 +537,7 @@ div.jg-chart {
 div.jg-legend {
   position : absolute;
   display : inline-block;
-  top : 197px;
+  top : 186px;
   /*
   -webkit-flex: none;
           flex: none;
