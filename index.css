@@ -432,6 +432,11 @@ body {
   transform-origin: 5% 5%;
   margin-left: -180px;
 }
+@media screen and (max-width:1020px) {
+  body {
+    margin-left: 0px;
+  }
+}
 
 div.jg-head, div.jg-foot   {
   visibility: hidden;
@@ -555,6 +560,7 @@ div.jg-legend {
 }
 
 @media screen and (max-width:840px) {
+
   div.jg-legend {
     left:840px;
   }
