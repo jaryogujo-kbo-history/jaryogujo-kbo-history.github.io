@@ -520,6 +520,10 @@ div.jg-foot > div.jg-logo  img {
   vertical-align: middle;
 }
 
+div.jg-foot  div.jg-btn {
+  margin : 10px auto 10px 105px;
+}
+
 div.jg-content {
   /*
   display: -webkit-flex;
@@ -856,6 +860,7 @@ g.jg-col:nth-child(even) .jg-back{
 .jg-cc a {
   color : #39BEFF;
 }
+
 
 .jg-article.jg-content {
   display:block;
